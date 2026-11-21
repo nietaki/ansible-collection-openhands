@@ -1,10 +1,20 @@
 ---
 - name: Converge the OpenHands role skeleton
   hosts: all
-  gather_facts: false
+  gather_facts: true
+  pre_tasks:
+    - name: Determine the local primary group
+      ansible.builtin.command: id -gn
+      register: molecule_primary_group
+      changed_when: false
   vars:
-    # The default scenario must remain runnable on a developer workstation
-    # without a Docker daemon; the dedicated preflight is tested separately.
+    # Keep the delegated scenario safe for developer workstations. Native
+    # integration will exercise creation of the dedicated system identity.
+    openhands_manage_service_identity: false
     openhands_docker_preflight_enabled: false
+    openhands_service_user: "{{ ansible_facts.user_id }}"
+    openhands_service_group: "{{ molecule_primary_group.stdout }}"
+    openhands_data_dir: "/tmp/openhands-molecule/data"
+    openhands_workspace_dir: "/tmp/openhands-molecule/workspaces"
   roles:
     - role: nietaki.openhands

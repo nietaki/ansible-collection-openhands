@@ -1,0 +1,37 @@
+---
+- name: Verify the OpenHands service identity and persistence
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Look up the service account
+      ansible.builtin.getent:
+        database: passwd
+        key: openhands
+
+    - name: Inspect the service account groups
+      ansible.builtin.command: id -nG openhands
+      register: openhands_groups
+      changed_when: false
+
+    - name: Inspect the data directory
+      ansible.builtin.stat:
+        path: /var/lib/openhands
+      register: openhands_data_directory
+
+    - name: Inspect the workspace directory
+      ansible.builtin.stat:
+        path: /srv/openhands/workspaces
+      register: openhands_workspace_directory
+
+    - name: Verify the service identity and persistence layout
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.getent_passwd.openhands is defined
+          - "'docker' in openhands_groups.stdout.split()"
+          - openhands_data_directory.stat.pw_name == 'openhands'
+          - openhands_data_directory.stat.gr_name == 'openhands'
+          - openhands_data_directory.stat.mode == '0750'
+          - openhands_workspace_directory.stat.pw_name == 'openhands'
+          - openhands_workspace_directory.stat.gr_name == 'openhands'
+          - openhands_workspace_directory.stat.mode == '0750'

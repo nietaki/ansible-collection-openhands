@@ -1,10 +1,20 @@
 ---
 - name: Exercise a valid OpenHands configuration
   hosts: all
-  gather_facts: false
+  gather_facts: true
+  pre_tasks:
+    - name: Determine the local primary group
+      ansible.builtin.command: id -gn
+      register: interface_primary_group
+      changed_when: false
   vars:
+    openhands_manage_service_identity: false
     openhands_docker_executable: /usr/bin/true
     openhands_docker_group: root
+    openhands_service_user: "{{ ansible_facts.user_id }}"
+    openhands_service_group: "{{ interface_primary_group.stdout }}"
+    openhands_data_dir: /tmp/openhands-interface/data
+    openhands_workspace_dir: /tmp/openhands-interface/workspaces
   tasks:
     - name: Include the role with Docker preflight enabled  # noqa role-name[path]
       ansible.builtin.include_role:

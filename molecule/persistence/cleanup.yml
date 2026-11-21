@@ -1,0 +1,26 @@
+---
+- name: Clean up the OpenHands persistence target
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Remove the OpenHands workspace directory
+      ansible.builtin.file:
+        path: /srv/openhands/workspaces
+        state: absent
+
+    - name: Remove the OpenHands data directory
+      ansible.builtin.file:
+        path: /var/lib/openhands
+        state: absent
+
+    - name: Remove the OpenHands service user
+      ansible.builtin.user:
+        name: openhands
+        state: absent
+        remove: true
+
+    - name: Remove the OpenHands service group
+      ansible.builtin.group:
+        name: openhands
+        state: absent

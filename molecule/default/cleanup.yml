@@ -2,4 +2,8 @@
 - name: Clean up the delegated target
   hosts: all
   gather_facts: false
-  tasks: []
+  tasks:
+    - name: Remove the delegated scenario data
+      ansible.builtin.file:
+        path: /tmp/openhands-molecule
+        state: absent

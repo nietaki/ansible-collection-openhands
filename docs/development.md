@@ -21,14 +21,20 @@ make molecule   # delegated no-op Molecule scenario
 make check      # all of the above
 ```
 
-The delegated scenario runs against the local machine and must not install or
-change host software. It is a smoke test for role loading and CI wiring until
-managed-host behavior is introduced.
+The delegated scenario runs against the local machine and uses temporary
+persistence paths without creating a system account or changing host software.
+It is a smoke test for role loading and CI wiring; native integration is
+responsible for exercising the managed service identity.
 
 The preliminary role interface is demonstrated in
 [`examples/main.yml`](../examples/main.yml). The role performs configuration
 validation and, by default, a read-only Docker executable and daemon preflight.
 Docker installation and daemon configuration remain outside the role.
+
+The `molecule-persistence` Make target runs the privileged persistence scenario
+used by native CI. It requires a Linux host, passwordless privilege escalation,
+and a working Docker installation; the default `make check` path remains safe
+for developer workstations.
 
 The CI compatibility job checks three Ansible versions: the declared minimum
 (`2.20.0`), the latest version available from PyPI, and the version currently

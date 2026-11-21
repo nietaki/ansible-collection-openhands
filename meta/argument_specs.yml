@@ -26,6 +26,10 @@ argument_specs:
         type: str
         default: openhands
         description: Dedicated Unix group for the Agent Canvas service.
+      openhands_manage_service_identity:
+        type: bool
+        default: true
+        description: Create and configure the service user and group.
       openhands_docker_group:
         type: str
         default: docker

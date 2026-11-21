@@ -15,7 +15,9 @@
       - openhands_port | int < 65536
       - not openhands_public or openhands_backend_api_key | length >= 32
       - openhands_data_dir is match('^/')
+      - openhands_data_dir != '/'
       - openhands_workspace_dir is match('^/')
+      - openhands_workspace_dir != '/'
       - openhands_conversation_image is match('^ghcr\.io/openhands/agent-server:[^@/:\s]+-golang$')
       - "'@' not in openhands_conversation_image"
       - >-
@@ -59,3 +61,49 @@
   check_mode: false
   when: openhands_docker_preflight_enabled
   failed_when: openhands_docker_info_check.rc != 0
+
+- name: Create the OpenHands service group
+  ansible.builtin.group:
+    name: "{{ openhands_service_group }}"
+    system: true
+    state: present
+  when: openhands_manage_service_identity
+
+- name: Create the OpenHands service user
+  ansible.builtin.user:
+    name: "{{ openhands_service_user }}"
+    group: "{{ openhands_service_group }}"
+    groups:
+      - "{{ openhands_docker_group }}"
+    append: true
+    home: "{{ openhands_data_dir }}"
+    shell: /usr/sbin/nologin
+    create_home: false
+    system: true
+    state: present
+  when: openhands_manage_service_identity
+
+- name: Create the OpenHands data directory
+  ansible.builtin.file:
+    path: "{{ openhands_data_dir }}"
+    state: directory
+    owner: "{{ openhands_service_user }}"
+    group: "{{ openhands_service_group }}"
+    mode: "0750"
+
+- name: Create the OpenHands workspace parent directory
+  ansible.builtin.file:
+    path: "{{ openhands_workspace_dir | dirname }}"
+    state: directory
+    owner: "{{ openhands_service_user }}"
+    group: "{{ openhands_service_group }}"
+    mode: "0750"
+  when: (openhands_workspace_dir | dirname) != '/'
+
+- name: Create the OpenHands workspace directory
+  ansible.builtin.file:
+    path: "{{ openhands_workspace_dir }}"
+    state: directory
+    owner: "{{ openhands_service_user }}"
+    group: "{{ openhands_service_group }}"
+    mode: "0750"

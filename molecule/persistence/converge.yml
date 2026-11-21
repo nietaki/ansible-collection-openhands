@@ -1,0 +1,7 @@
+---
+- name: Converge the OpenHands persistence role
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - role: nietaki.openhands

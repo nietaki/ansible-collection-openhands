@@ -308,6 +308,7 @@ openhands_agent_canvas_version: "<exact-version>"
 # Service identity
 openhands_service_user: openhands
 openhands_service_group: openhands
+openhands_manage_service_identity: true
 openhands_docker_group: docker
 
 # Listener and authentication

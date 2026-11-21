@@ -1,5 +1,5 @@
 ---
-- name: Verify the OpenHands role skeleton
+- name: Verify the delegated target
   hosts: all
   gather_facts: false
   tasks:
@@ -7,3 +7,23 @@
       ansible.builtin.assert:
         that:
           - inventory_hostname == 'localhost'
+
+    - name: Inspect the data directory
+      ansible.builtin.stat:
+        path: /tmp/openhands-molecule/data
+      register: molecule_data_directory
+
+    - name: Inspect the workspace directory
+      ansible.builtin.stat:
+        path: /tmp/openhands-molecule/workspaces
+      register: molecule_workspace_directory
+
+    - name: Verify persistence directories
+      ansible.builtin.assert:
+        that:
+          - molecule_data_directory.stat.exists
+          - molecule_data_directory.stat.isdir
+          - molecule_data_directory.stat.mode == '0750'
+          - molecule_workspace_directory.stat.exists
+          - molecule_workspace_directory.stat.isdir
+          - molecule_workspace_directory.stat.mode == '0750'

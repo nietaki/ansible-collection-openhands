@@ -9,6 +9,7 @@ openhands_agent_canvas_version: "1.43.0"
 # Service identity and Docker access.
 openhands_service_user: openhands
 openhands_service_group: openhands
+openhands_manage_service_identity: true
 openhands_docker_group: docker
 openhands_docker_executable: docker
 openhands_docker_preflight_enabled: true

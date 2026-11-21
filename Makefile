@@ -1,6 +1,6 @@
 UV ?= uv
 
-.PHONY: install lint lint-yaml test molecule check
+.PHONY: install lint lint-yaml test molecule molecule-persistence check
 
 install:
 	$(UV) sync --locked
@@ -17,5 +17,8 @@ test:
 
 molecule:
 	$(UV) run molecule test -s default
+
+molecule-persistence:
+	$(UV) run molecule test -s persistence
 
 check: lint test molecule
