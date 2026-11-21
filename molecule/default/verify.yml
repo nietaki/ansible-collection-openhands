@@ -1,0 +1,9 @@
+---
+- name: Verify the OpenHands role skeleton
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Confirm the delegated scenario reached the target
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'localhost'

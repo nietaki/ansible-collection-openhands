@@ -1,0 +1,7 @@
+---
+- name: Syntax-check the OpenHands role
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Load the role task entrypoint
+      ansible.builtin.include_tasks: ../../tasks/main.yml

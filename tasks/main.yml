@@ -1,0 +1,4 @@
+---
+- name: Confirm the OpenHands role is loaded
+  ansible.builtin.debug:
+    msg: "OpenHands role skeleton loaded; managed-host changes begin in Milestone 3."

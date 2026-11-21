@@ -1,0 +1,5 @@
+---
+- name: Prepare the delegated target
+  hosts: all
+  gather_facts: false
+  tasks: []

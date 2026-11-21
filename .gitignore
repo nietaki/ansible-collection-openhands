@@ -1,0 +1,15 @@
+# Python and Ansible tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+.cache/
+.molecule/
+.ansible/
+*.retry
+
+# Local tooling
+.vscode/
+.idea/

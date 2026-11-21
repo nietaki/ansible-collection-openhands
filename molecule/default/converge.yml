@@ -1,0 +1,6 @@
+---
+- name: Converge the OpenHands role skeleton
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: nietaki.openhands

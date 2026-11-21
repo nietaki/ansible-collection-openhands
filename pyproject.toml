@@ -1,0 +1,16 @@
+[project]
+name = "ansible-role-openhands-dev"
+version = "0.1.0"
+description = "Development tooling for the nietaki.openhands Ansible role"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "ansible-core==2.21.3",
+  "ansible-lint==25.11.0",
+  "molecule==25.11.1",
+  "molecule-plugins==26.11.0",
+  "pytest==8.4.2",
+  "yamllint==1.37.1",
+]

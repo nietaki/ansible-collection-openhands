@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  author: nietaki
+  namespace: nietaki
+  role_name: openhands
+  description: Deploy OpenHands Agent Canvas with Dockerized conversations
+  license: MIT
+  min_ansible_version: "2.20"
+  platforms:
+    - name: Ubuntu
+      # Galaxy's metadata schema does not yet enumerate Ubuntu 26.04.
+      versions:
+        - all
+  galaxy_tags:
+    - agentcanvas
+    - docker
+    - openhands
+
+dependencies: []

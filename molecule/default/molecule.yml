@@ -1,0 +1,33 @@
+---
+# Molecule's built-in default driver delegates to an existing target.
+driver:
+  name: default
+
+platforms:
+  - name: localhost
+    groups:
+      - all
+    connection_options:
+      ansible_connection: local
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      interpreter_python: auto_silent
+  inventory:
+    host_vars:
+      localhost:
+        ansible_connection: local
+
+verifier:
+  name: ansible
+
+scenario:
+  name: default
+  test_sequence:
+    - syntax
+    - converge
+    - idempotence
+    - verify
+    - cleanup

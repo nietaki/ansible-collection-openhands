@@ -1,0 +1,5 @@
+---
+- name: Clean up the delegated target
+  hosts: all
+  gather_facts: false
+  tasks: []
