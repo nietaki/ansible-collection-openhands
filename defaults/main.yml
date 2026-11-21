@@ -1,2 +1,36 @@
 ---
-# Public role defaults will be added in Milestone 2.
+# Versioned application dependencies. These are deliberately explicit so an
+# upgrade is a reviewed role configuration change rather than an implicit
+# latest-version upgrade.
+openhands_node_version: "24.11.1"
+openhands_uv_version: "0.9.30"
+openhands_agent_canvas_version: "1.43.0"
+
+# Service identity and Docker access.
+openhands_service_user: openhands
+openhands_service_group: openhands
+openhands_docker_group: docker
+openhands_docker_executable: docker
+openhands_docker_preflight_enabled: true
+
+# Listener and authentication.
+openhands_bind_host: "127.0.0.1"
+openhands_port: 8000
+openhands_public: false
+openhands_backend_api_key: ""
+
+# Persistent state.
+openhands_data_dir: /var/lib/openhands
+openhands_workspace_dir: /srv/openhands/workspaces
+
+# Docker conversation runtime.
+openhands_conversation_image: ghcr.io/openhands/agent-server:1.62.0-golang
+openhands_conversation_image_digest: ""
+openhands_conversation_memory: 4g
+openhands_conversation_cpus: "2.0"
+openhands_conversation_pids_limit: 512
+openhands_conversation_startup_timeout: 120
+openhands_conversation_idle_ttl_seconds: 1200
+
+# Escape hatch for settings not yet modeled by a dedicated variable.
+openhands_extra_environment: {}

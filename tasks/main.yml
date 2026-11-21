@@ -1,4 +1,61 @@
 ---
-- name: Confirm the OpenHands role is loaded
-  ansible.builtin.debug:
-    msg: "OpenHands role skeleton loaded; managed-host changes begin in Milestone 3."
+- name: Validate OpenHands configuration
+  ansible.builtin.assert:
+    that:
+      - openhands_node_version is match('^[0-9]+\.[0-9]+\.[0-9]+$')
+      - openhands_uv_version is match('^[0-9]+\.[0-9]+\.[0-9]+$')
+      - openhands_agent_canvas_version is match('^[0-9]+\.[0-9]+\.[0-9]+$')
+      - openhands_service_user is match('^[a-z_][a-z0-9_-]*[$]?$')
+      - openhands_service_group is match('^[a-z_][a-z0-9_-]*[$]?$')
+      - openhands_docker_group is match('^[a-z_][a-z0-9_-]*[$]?$')
+      - openhands_docker_executable | length > 0
+      - openhands_bind_host | length > 0
+      - openhands_bind_host is not search('\s')
+      - openhands_port | int > 0
+      - openhands_port | int < 65536
+      - not openhands_public or openhands_backend_api_key | length >= 32
+      - openhands_data_dir is match('^/')
+      - openhands_workspace_dir is match('^/')
+      - openhands_conversation_image is match('^ghcr\.io/openhands/agent-server:[^@/:\s]+-golang$')
+      - "'@' not in openhands_conversation_image"
+      - >-
+          openhands_conversation_image_digest == '' or
+          openhands_conversation_image_digest is match('^sha256:[0-9a-f]{64}$')
+      - openhands_conversation_memory is match('^[1-9][0-9]*[kmgt]i?$')
+      - openhands_conversation_cpus is match('^[0-9]+([.][0-9]+)?$')
+      - openhands_conversation_cpus | float > 0
+      - openhands_conversation_pids_limit | int > 0
+      - openhands_conversation_startup_timeout | int > 0
+      - openhands_conversation_idle_ttl_seconds | int >= 0
+      - (openhands_extra_environment.keys() | intersect([
+          'LOCAL_BACKEND_API_KEY',
+          'OH_CONVERSATION_IMAGE',
+          'OH_CONVERSATION_RUNTIME',
+          'OH_SECRET_KEY'
+        ]) | list | length) == 0
+    fail_msg: >-
+      OpenHands configuration is invalid. Check versions, absolute paths,
+      listener settings, public-mode authentication, image and digest syntax,
+      resource limits, and reserved extra environment variables.
+
+- name: Check Docker executable
+  ansible.builtin.command:
+    argv:
+      - "{{ openhands_docker_executable }}"
+      - --version
+  register: openhands_docker_version_check
+  changed_when: false
+  check_mode: false
+  when: openhands_docker_preflight_enabled
+  failed_when: openhands_docker_version_check.rc != 0
+
+- name: Check Docker daemon reachability
+  ansible.builtin.command:
+    argv:
+      - "{{ openhands_docker_executable }}"
+      - info
+  register: openhands_docker_info_check
+  changed_when: false
+  check_mode: false
+  when: openhands_docker_preflight_enabled
+  failed_when: openhands_docker_info_check.rc != 0

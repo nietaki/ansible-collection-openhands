@@ -1,0 +1,11 @@
+---
+- name: Exercise a valid OpenHands configuration
+  hosts: all
+  gather_facts: false
+  vars:
+    openhands_docker_executable: /usr/bin/true
+    openhands_docker_group: root
+  tasks:
+    - name: Include the role with Docker preflight enabled  # noqa role-name[path]
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."

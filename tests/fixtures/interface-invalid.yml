@@ -1,0 +1,12 @@
+---
+- name: Exercise an invalid OpenHands configuration
+  hosts: all
+  gather_facts: false
+  vars:
+    openhands_docker_preflight_enabled: false
+    openhands_public: true
+    openhands_backend_api_key: ""
+  tasks:
+    - name: Include the role with invalid public authentication  # noqa role-name[path]
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."

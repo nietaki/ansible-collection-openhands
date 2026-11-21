@@ -1,0 +1,10 @@
+---
+- name: Deploy OpenHands Agent Canvas
+  hosts: openhands_hosts
+  become: true
+  roles:
+    - role: nietaki.openhands
+      vars:
+        # Docker Engine and its docker group must already exist on the host.
+        openhands_docker_group: docker
+        openhands_public: false

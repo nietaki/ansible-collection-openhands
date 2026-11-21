@@ -2,5 +2,9 @@
 - name: Converge the OpenHands role skeleton
   hosts: all
   gather_facts: false
+  vars:
+    # The default scenario must remain runnable on a developer workstation
+    # without a Docker daemon; the dedicated preflight is tested separately.
+    openhands_docker_preflight_enabled: false
   roles:
     - role: nietaki.openhands

@@ -236,9 +236,11 @@ A likely path is:
 The systemd unit should use explicit executable paths and should not depend on
 interactive shell startup files.
 
-Exact Node.js, `uv`, Agent Canvas, and Agent Server image versions have not yet
-been selected. They should be selected together with reproducible artifact
-metadata and tested before becoming defaults.
+Milestone 2 establishes provisional explicit defaults for Node.js `24.11.1`,
+`uv` `0.9.30`, Agent Canvas `1.43.0`, and the Agent Server image
+`1.62.0-golang`. These versions are not yet covered by the installation and
+runtime integration milestones; they must remain subject to verification before
+release.
 
 ## Service identity and filesystem layout
 
@@ -545,10 +547,9 @@ test: add end-to-end conversation coverage
 These should be answered with current evidence when their milestone begins,
 not guessed permanently now:
 
-- Which exact Node.js 24 release should be the first default?
-- Which exact `uv` release should be the first default?
-- Which exact Agent Canvas release should be the first default?
-- Which exact official Agent Server `-golang` tag should be paired with it?
+- Do the provisional Node.js, `uv`, Agent Canvas, and Agent Server versions
+  work together across both supported architectures and the selected Canvas
+  release?
 - Should CI lock the current Ansible release alongside the declared 2.20
   minimum, and when should that lock be updated?
 - What exact command-line flags and environment variables are required by the

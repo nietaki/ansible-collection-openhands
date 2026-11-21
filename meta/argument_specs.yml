@@ -1,0 +1,97 @@
+---
+argument_specs:
+  main:
+    short_description: Deploy OpenHands Agent Canvas with Dockerized conversations.
+    description:
+      - The role validates its complete public interface before any managed-host changes.
+      - Docker is expected to be installed and configured outside this role.
+    options:
+      openhands_node_version:
+        type: str
+        default: "24.11.1"
+        description: Exact Node.js release to install in a later milestone.
+      openhands_uv_version:
+        type: str
+        default: "0.9.30"
+        description: Exact uv release to install in a later milestone.
+      openhands_agent_canvas_version:
+        type: str
+        default: "1.43.0"
+        description: Exact Agent Canvas npm package version to install later.
+      openhands_service_user:
+        type: str
+        default: openhands
+        description: Dedicated Unix account for the Agent Canvas service.
+      openhands_service_group:
+        type: str
+        default: openhands
+        description: Dedicated Unix group for the Agent Canvas service.
+      openhands_docker_group:
+        type: str
+        default: docker
+        description: Host group that grants access to the Docker daemon.
+      openhands_docker_executable:
+        type: str
+        default: docker
+        description: Docker executable name or absolute path.
+      openhands_docker_preflight_enabled:
+        type: bool
+        default: true
+        description: Check Docker executable, daemon, and group availability.
+      openhands_bind_host:
+        type: str
+        default: 127.0.0.1
+        description: Address on which Agent Canvas will listen.
+      openhands_port:
+        type: int
+        default: 8000
+        description: TCP port on which Agent Canvas will listen.
+      openhands_public:
+        type: bool
+        default: false
+        description: Whether the service is intended to be reachable beyond localhost.
+      openhands_backend_api_key:
+        type: str
+        default: ""
+        no_log: true
+        description: Backend API key required for public mode.
+      openhands_data_dir:
+        type: str
+        default: /var/lib/openhands
+        description: Persistent Agent Canvas data directory.
+      openhands_workspace_dir:
+        type: str
+        default: /srv/openhands/workspaces
+        description: Root directory for conversation workspaces.
+      openhands_conversation_image:
+        type: str
+        default: ghcr.io/openhands/agent-server:1.62.0-golang
+        description: Exact official OpenHands Agent Server golang image tag.
+      openhands_conversation_image_digest:
+        type: str
+        default: ""
+        description: Optional sha256 manifest digest for the conversation image.
+      openhands_conversation_memory:
+        type: str
+        default: 4g
+        description: Docker memory limit for each conversation container.
+      openhands_conversation_cpus:
+        type: str
+        default: "2.0"
+        description: Docker CPU limit for each conversation container.
+      openhands_conversation_pids_limit:
+        type: int
+        default: 512
+        description: Docker PID limit for each conversation container.
+      openhands_conversation_startup_timeout:
+        type: int
+        default: 120
+        description: Seconds to wait for a conversation container to become ready.
+      openhands_conversation_idle_ttl_seconds:
+        type: int
+        default: 1200
+        description: Seconds before an idle conversation container is stopped.
+      openhands_extra_environment:
+        type: dict
+        default: {}
+        description: Additional non-security-critical environment variables.

@@ -25,6 +25,11 @@ The delegated scenario runs against the local machine and must not install or
 change host software. It is a smoke test for role loading and CI wiring until
 managed-host behavior is introduced.
 
+The preliminary role interface is demonstrated in
+[`examples/main.yml`](../examples/main.yml). The role performs configuration
+validation and, by default, a read-only Docker executable and daemon preflight.
+Docker installation and daemon configuration remain outside the role.
+
 The CI compatibility job checks three Ansible versions: the declared minimum
 (`2.20.0`), the latest version available from PyPI, and the version currently
 used by the primary `kotik` consumer (`2.22.0`). These checks use isolated uv
