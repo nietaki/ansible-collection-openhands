@@ -1,7 +1,11 @@
 ---
 profile: production
 exclude_paths:
+  - .ansible/
   - .cache/
   - .git/
-  - .venv/
   - .molecule/
+  - .pytest_cache/
+  - .undodir/
+  - .venv/
+  - __pycache__/

@@ -8,6 +8,7 @@ __pycache__/
 .cache/
 .molecule/
 .ansible/
+.undodir/
 *.retry
 
 # Local tooling

@@ -1,13 +1,15 @@
 UV ?= uv
 
-.PHONY: install lint test molecule check
+.PHONY: install lint lint-yaml test molecule check
 
 install:
 	$(UV) sync --locked
 
-lint:
-	$(UV) run yamllint .
+lint: lint-yaml
 	$(UV) run ansible-lint
+
+lint-yaml:
+	git ls-files -z -- '*.yml' '*.yaml' | xargs -0 $(UV) run yamllint
 
 # The contract tests use only the Python standard library for portability.
 test:
