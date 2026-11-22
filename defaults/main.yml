@@ -12,6 +12,7 @@ openhands_agent_canvas_version: "1.43.0"
 openhands_agent_canvas_checksum: >-
   5830de4ec20a8d0da93e3b294e2940824b045034fba6c719692688bbdf9b5d743279896f8a486999001300320ba05a917d204f36e4213999d5f02b974b690788
 openhands_install_prerequisites: true
+openhands_manage_service: true
 
 # Service identity and Docker access.
 openhands_service_user: openhands

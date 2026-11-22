@@ -37,6 +37,10 @@ argument_specs:
         type: bool
         default: true
         description: Install the pinned Node.js, uv, and Agent Canvas prerequisites.
+      openhands_manage_service:
+        type: bool
+        default: true
+        description: Render, enable, start, and health-check the systemd service.
       openhands_service_user:
         type: str
         default: openhands

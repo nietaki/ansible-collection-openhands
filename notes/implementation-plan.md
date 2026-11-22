@@ -236,11 +236,10 @@ A likely path is:
 The systemd unit should use explicit executable paths and should not depend on
 interactive shell startup files.
 
-Milestone 2 establishes provisional explicit defaults for Node.js `24.11.1`,
-`uv` `0.9.30`, Agent Canvas `1.43.0`, and the Agent Server image
-`1.62.0-golang`. These versions are not yet covered by the installation and
-runtime integration milestones; they must remain subject to verification before
-release.
+The role currently uses explicit defaults for Node.js `24.11.1`, `uv` `0.9.30`,
+Agent Canvas `1.43.0`, and the Agent Server image `1.62.0-golang`. Native
+integration remains responsible for verifying that these versions work
+across both supported architectures.
 
 ## Service identity and filesystem layout
 
@@ -477,6 +476,7 @@ This milestone should still avoid meaningful target mutation.
 - Render the restricted environment file.
 - Render the systemd unit.
 - Add daemon-reload and restart handlers.
+- Enable, start, and locally health-check full Agent Canvas.
 - Enable and start full Agent Canvas.
 - Verify local health and version output.
 - Verify that unchanged runs do not restart the service.

@@ -33,6 +33,24 @@
       register: openhands_agent_canvas_version_check
       changed_when: false
 
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Verify the Agent Canvas health endpoint
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8000/
+        status_code: 200
+
+    - name: Inspect the OpenHands environment file
+      ansible.builtin.stat:
+        path: /etc/openhands/agent-canvas.env
+      register: openhands_environment_file
+
+    - name: Inspect the OpenHands systemd unit
+      ansible.builtin.stat:
+        path: /etc/systemd/system/openhands.service
+      register: openhands_systemd_unit
+
     - name: Inspect the data directory
       ansible.builtin.stat:
         path: /var/lib/openhands
@@ -51,6 +69,13 @@
           - openhands_node_version_check.stdout.strip() == 'v' ~ openhands_node_version
           - ('uv ' ~ openhands_uv_version) in openhands_uv_version_check.stdout
           - openhands_agent_canvas_version_check.stdout.strip() == openhands_agent_canvas_version
+          - ansible_facts.services['openhands.service'].status == 'enabled'
+          - ansible_facts.services['openhands.service'].state == 'running'
+          - openhands_environment_file.stat.pw_name == 'root'
+          - openhands_environment_file.stat.gr_name == 'openhands'
+          - openhands_environment_file.stat.mode == '0640'
+          - openhands_systemd_unit.stat.pw_name == 'root'
+          - openhands_systemd_unit.stat.mode == '0644'
           - openhands_data_directory.stat.pw_name == 'openhands'
           - openhands_data_directory.stat.gr_name == 'openhands'
           - openhands_data_directory.stat.mode == '0750'

@@ -1,0 +1,28 @@
+[Unit]
+Description=OpenHands Agent Canvas
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=simple
+User={{ openhands_service_user }}
+Group={{ openhands_service_group }}
+SupplementaryGroups={{ openhands_docker_group }}
+WorkingDirectory={{ openhands_data_dir }}
+EnvironmentFile={{ openhands_environment_file }}
+Environment=HOME={{ openhands_data_dir }}
+Environment=PATH={{ openhands_runtime_path }}
+ExecStart={{ openhands_agent_canvas_bin }}{% if openhands_public %} --public{% endif %}
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=300s
+TimeoutStopSec=30s
+KillSignal=SIGINT
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

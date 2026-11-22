@@ -38,3 +38,15 @@ openhands_agent_canvas_bin: >-
 openhands_system_path: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 openhands_runtime_path: >-
   {{ openhands_install_prefix }}/node/bin:{{ openhands_agent_canvas_prefix }}/bin:{{ openhands_system_path }}
+openhands_environment_dir: /etc/openhands
+openhands_environment_file: "{{ openhands_environment_dir }}/agent-canvas.env"
+openhands_systemd_unit: /etc/systemd/system/openhands.service
+openhands_health_host: >-
+  {{ '127.0.0.1' if openhands_bind_host in ['0.0.0.0', '::'] else openhands_bind_host }}
+openhands_health_url_host: >-
+  {{ '[' ~ openhands_health_host ~ ']' if ':' in openhands_health_host else openhands_health_host }}
+openhands_health_url: "http://{{ openhands_health_url_host }}:{{ openhands_port }}/"
+openhands_effective_conversation_image_suffix: >-
+  {{ '@' ~ openhands_conversation_image_digest if openhands_conversation_image_digest else '' }}
+openhands_effective_conversation_image: >-
+  {{ openhands_conversation_image }}{{ openhands_effective_conversation_image_suffix }}

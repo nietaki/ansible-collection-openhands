@@ -1,2 +1,11 @@
 ---
-# Service handlers will be added in Milestone 5.
+- name: Reload systemd manager
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  listen: Reload OpenHands systemd unit
+
+- name: Restart OpenHands service
+  ansible.builtin.systemd_service:
+    name: openhands.service
+    state: restarted
+  listen: Restart OpenHands service

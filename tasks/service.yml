@@ -1,0 +1,66 @@
+---
+- name: Create the OpenHands system configuration directory
+  ansible.builtin.file:
+    path: "{{ openhands_environment_dir }}"
+    state: directory
+    owner: root
+    group: "{{ openhands_service_group }}"
+    mode: "0750"
+
+- name: Render the restricted OpenHands environment file
+  ansible.builtin.template:
+    src: openhands.env.j2
+    dest: "{{ openhands_environment_file }}"
+    owner: root
+    group: "{{ openhands_service_group }}"
+    mode: "0640"
+  no_log: true
+  notify: Restart OpenHands service
+
+- name: Render the OpenHands systemd unit
+  ansible.builtin.template:
+    src: openhands.service.j2
+    dest: "{{ openhands_systemd_unit }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload OpenHands systemd unit
+    - Restart OpenHands service
+
+- name: Enable and start the OpenHands service
+  ansible.builtin.systemd_service:
+    name: openhands.service
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Apply pending OpenHands service changes before verification
+  ansible.builtin.meta: flush_handlers
+
+- name: Verify the running Agent Canvas version
+  ansible.builtin.command:
+    argv:
+      - "{{ openhands_agent_canvas_bin }}"
+      - --version
+  become: true
+  become_user: "{{ openhands_service_user }}"
+  register: openhands_running_canvas_version
+  changed_when: false
+  check_mode: false
+  failed_when: openhands_running_canvas_version.stdout.strip() != openhands_agent_canvas_version
+  environment:
+    HOME: "{{ openhands_data_dir }}"
+    PATH: "{{ openhands_runtime_path }}"
+
+- name: Wait for Agent Canvas local health
+  ansible.builtin.uri:
+    url: "{{ openhands_health_url }}"
+    method: GET
+    status_code: 200
+    timeout: 5
+  register: openhands_health_check
+  until: openhands_health_check.status == 200
+  retries: 60
+  delay: 5
+  check_mode: false

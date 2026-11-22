@@ -19,6 +19,7 @@
       - openhands_port | int > 0
       - openhands_port | int < 65536
       - not openhands_public or openhands_backend_api_key | length >= 32
+      - openhands_bind_host in ['127.0.0.1', 'localhost', '::1'] or openhands_public
       - openhands_data_dir is match('^/')
       - openhands_data_dir != '/'
       - openhands_workspace_dir is match('^/')
@@ -36,14 +37,31 @@
       - openhands_conversation_idle_ttl_seconds | int >= 0
       - (openhands_extra_environment.keys() | intersect([
           'LOCAL_BACKEND_API_KEY',
+          'OH_BIND_HOST',
+          'OH_CONVERSATION_CONTAINER_CPUS',
+          'OH_CONVERSATION_CONTAINER_MEMORY',
+          'OH_CONVERSATION_CONTAINER_PIDS_LIMIT',
+          'OH_CONVERSATION_CONTAINER_STARTUP_TIMEOUT',
+          'OH_CONVERSATION_IDLE_TTL_SECONDS',
           'OH_CONVERSATION_IMAGE',
           'OH_CONVERSATION_RUNTIME',
-          'OH_SECRET_KEY'
+          'OH_CONVERSATION_RUNTIME_SELECTABLE',
+          'OH_SECRET_KEY',
+          'PORT'
         ]) | list | length) == 0
     fail_msg: >-
       OpenHands configuration is invalid. Check versions, absolute paths,
       listener settings, public-mode authentication, image and digest syntax,
-      resource limits, and reserved extra environment variables.
+      resource limits, environment variable names, and reserved variables.
+
+- name: Validate extra environment variable names
+  ansible.builtin.assert:
+    that:
+      - item.key is match('^[A-Za-z_][A-Za-z0-9_]*$')
+    fail_msg: "Invalid environment variable name: {{ item.key }}"
+  loop: "{{ openhands_extra_environment | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
 
 - name: Validate the prerequisite platform
   ansible.builtin.assert:
@@ -126,3 +144,7 @@
 - name: Install managed application prerequisites
   ansible.builtin.include_tasks: prerequisites.yml
   when: openhands_install_prerequisites
+
+- name: Manage the OpenHands systemd service
+  ansible.builtin.include_tasks: service.yml
+  when: openhands_manage_service

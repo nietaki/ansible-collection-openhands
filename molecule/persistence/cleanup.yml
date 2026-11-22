@@ -4,6 +4,32 @@
   become: true
   gather_facts: false
   tasks:
+    - name: Stop and disable the OpenHands service
+      ansible.builtin.systemd_service:
+        name: openhands.service
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Remove the OpenHands systemd unit
+      ansible.builtin.file:
+        path: /etc/systemd/system/openhands.service
+        state: absent
+
+    - name: Reload systemd after removing the unit
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    - name: Remove the OpenHands system configuration
+      ansible.builtin.file:
+        path: /etc/openhands
+        state: absent
+
+    - name: Remove the OpenHands application prefix
+      ansible.builtin.file:
+        path: /opt/openhands
+        state: absent
+
     - name: Remove the OpenHands workspace directory
       ansible.builtin.file:
         path: /srv/openhands/workspaces
