@@ -12,7 +12,7 @@ WorkingDirectory={{ openhands_data_dir }}
 EnvironmentFile={{ openhands_environment_file }}
 Environment=HOME={{ openhands_data_dir }}
 Environment=PATH={{ openhands_runtime_path }}
-ExecStart={{ openhands_agent_canvas_bin }}{% if openhands_public %} --public{% endif %}
+ExecStart={{ openhands_agent_canvas_bin }}{{ ' --public' if openhands_public else '' }}
 Restart=on-failure
 RestartSec=5s
 TimeoutStartSec=300s

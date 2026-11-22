@@ -28,6 +28,14 @@
     - Reload OpenHands systemd unit
     - Restart OpenHands service
 
+- name: Validate the rendered OpenHands systemd unit
+  ansible.builtin.command:
+    argv:
+      - systemd-analyze
+      - verify
+      - "{{ openhands_systemd_unit }}"
+  changed_when: false
+
 - name: Enable and start the OpenHands service
   ansible.builtin.systemd_service:
     name: openhands.service

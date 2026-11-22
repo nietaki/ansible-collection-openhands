@@ -59,6 +59,15 @@ class InterfaceContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("OpenHands configuration is invalid", output)
 
+    def test_service_template_preserves_directive_boundaries(self) -> None:
+        result = self.run_fixture("service-template.yml")
+
+        self.assertEqual(
+            result.returncode,
+            0,
+            msg=f"service template rendering failed:\n{result.stdout}\n{result.stderr}",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

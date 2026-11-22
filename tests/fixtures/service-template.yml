@@ -1,0 +1,61 @@
+---
+- name: Verify OpenHands systemd unit rendering
+  hosts: all
+  gather_facts: false
+  vars:
+    openhands_agent_canvas_bin: /opt/openhands/agent-canvas/bin/agent-canvas
+    openhands_data_dir: /var/lib/openhands
+    openhands_docker_group: docker
+    openhands_environment_file: /etc/openhands/agent-canvas.env
+    openhands_runtime_path: /opt/openhands/node/bin:/opt/openhands/uv:/usr/bin
+    openhands_service_group: openhands
+    openhands_service_user: openhands
+    openhands_template_test_dir: /tmp/openhands-interface
+  tasks:
+    - name: Create the service template test directory
+      ansible.builtin.file:
+        path: "{{ openhands_template_test_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Render the non-public OpenHands systemd unit  # noqa no-relative-paths
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../../templates/openhands.service.j2"
+        dest: "{{ openhands_template_test_dir }}/openhands-private.service"
+        mode: "0644"
+      vars:
+        openhands_public: false
+
+    - name: Render the public OpenHands systemd unit  # noqa no-relative-paths
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../../templates/openhands.service.j2"
+        dest: "{{ openhands_template_test_dir }}/openhands-public.service"
+        mode: "0644"
+      vars:
+        openhands_public: true
+
+    - name: Read the rendered non-public systemd unit
+      ansible.builtin.slurp:
+        src: "{{ openhands_template_test_dir }}/openhands-private.service"
+      register: openhands_private_unit
+
+    - name: Read the rendered public systemd unit
+      ansible.builtin.slurp:
+        src: "{{ openhands_template_test_dir }}/openhands-public.service"
+      register: openhands_public_unit
+
+    - name: Verify systemd directive boundaries
+      ansible.builtin.assert:
+        that:
+          - >-
+            ('ExecStart=' ~ openhands_agent_canvas_bin ~ '\nRestart=on-failure')
+            in (openhands_private_unit.content | b64decode)
+          - >-
+            ('ExecStart=' ~ openhands_agent_canvas_bin ~ ' --public\nRestart=on-failure')
+            in (openhands_public_unit.content | b64decode)
+          - >-
+            (openhands_agent_canvas_bin ~ 'Restart=on-failure')
+            not in (openhands_private_unit.content | b64decode)
+          - >-
+            '--publicRestart=on-failure'
+            not in (openhands_public_unit.content | b64decode)
