@@ -2,11 +2,14 @@
 - name: Verify the OpenHands service identity and persistence
   hosts: all
   become: true
-  gather_facts: false
+  gather_facts: true
   vars:
     openhands_node_version: "24.11.1"
     openhands_uv_version: "0.9.30"
     openhands_agent_canvas_version: "1.43.0"
+    openhands_backend_api_key: ci-only-openhands-backend-key-0001
+    openhands_conversation_image: ghcr.io/openhands/agent-server:1.62.0-golang
+    openhands_conversation_workspace: /srv/openhands/workspaces/ci-conversation
   tasks:
     - name: Look up the service account
       ansible.builtin.getent:
@@ -46,6 +49,246 @@
         url: http://127.0.0.1:8000/
         status_code: 200
 
+    - name: Inspect the configured conversation image
+      ansible.builtin.command:
+        argv:
+          - runuser
+          - -u
+          - openhands
+          - --
+          - docker
+          - image
+          - inspect
+          - "{{ openhands_conversation_image }}"
+      register: openhands_conversation_image_inspect
+      changed_when: false
+
+    - name: Verify Go in the native conversation image
+      ansible.builtin.command:
+        argv:
+          - runuser
+          - -u
+          - openhands
+          - --
+          - docker
+          - run
+          - --rm
+          - --entrypoint
+          - go
+          - "{{ openhands_conversation_image }}"
+          - version
+      register: openhands_conversation_go_version
+      changed_when: false
+
+    - name: Inspect the Agent Server runtime configuration
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8000/server_info
+        headers:
+          X-Session-API-Key: "{{ openhands_backend_api_key }}"
+        status_code: 200
+      register: openhands_server_info
+      no_log: true
+
+    - name: Create the conversation lifecycle workspace
+      ansible.builtin.file:
+        path: "{{ openhands_conversation_workspace }}"
+        state: directory
+        owner: openhands
+        group: openhands
+        mode: "0750"
+
+    - name: Exercise the Docker conversation lifecycle
+      block:
+        - name: Start a Docker conversation
+          ansible.builtin.uri:
+            url: http://127.0.0.1:8000/api/conversations
+            method: POST
+            headers:
+              X-Session-API-Key: "{{ openhands_backend_api_key }}"
+            body_format: json
+            body:
+              agent:
+                kind: Agent
+                llm:
+                  model: gpt-4o
+                  api_key: ci-only-mock-llm-key
+                  usage_id: ci-conversation
+                tools:
+                  - name: TerminalTool
+              workspace:
+                kind: LocalWorkspace
+                working_dir: "{{ openhands_conversation_workspace }}"
+            status_code: 201
+          register: openhands_conversation_start
+          no_log: true
+
+        - name: Record the Docker conversation identifier
+          ansible.builtin.set_fact:
+            openhands_conversation_id: "{{ openhands_conversation_start.json.id }}"
+          no_log: true
+
+        - name: Inspect the running conversation runtime
+          ansible.builtin.uri:
+            url: >-
+              http://127.0.0.1:8000/api/conversations/{{ openhands_conversation_id }}/runtime
+            headers:
+              X-Session-API-Key: "{{ openhands_backend_api_key }}"
+            status_code: 200
+          register: openhands_conversation_runtime
+          no_log: true
+
+        - name: Find the running conversation container
+          ansible.builtin.command:
+            argv:
+              - runuser
+              - -u
+              - openhands
+              - --
+              - docker
+              - ps
+              - --quiet
+              - --filter
+              - name=agent-server-conversation-
+          register: openhands_conversation_containers
+          changed_when: false
+
+        - name: Verify one conversation container is running
+          ansible.builtin.assert:
+            that:
+              - openhands_conversation_containers.stdout_lines | length == 1
+
+        - name: Record the initial conversation container
+          ansible.builtin.set_fact:
+            openhands_initial_conversation_container: >-
+              {{ openhands_conversation_containers.stdout_lines | first }}
+
+        - name: Write a workspace marker from the conversation container
+          ansible.builtin.command:
+            argv:
+              - runuser
+              - -u
+              - openhands
+              - --
+              - docker
+              - exec
+              - "{{ openhands_initial_conversation_container }}"
+              - sh
+              - -c
+              - "printf 'docker-conversation-persistence\\n' > /workspace/container-marker.txt"
+          changed_when: true
+
+        - name: Release the conversation runtime
+          ansible.builtin.uri:
+            url: >-
+              http://127.0.0.1:8000/api/conversations/{{ openhands_conversation_id }}/runtime
+            method: DELETE
+            headers:
+              X-Session-API-Key: "{{ openhands_backend_api_key }}"
+            status_code: 204
+          no_log: true
+
+        - name: Wait for the released conversation container to stop
+          ansible.builtin.command:
+            argv:
+              - runuser
+              - -u
+              - openhands
+              - --
+              - docker
+              - ps
+              - --quiet
+              - --filter
+              - name=agent-server-conversation-
+          register: openhands_released_conversation_containers
+          changed_when: false
+          until: openhands_released_conversation_containers.stdout | length == 0
+          retries: 12
+          delay: 1
+
+        - name: Read the persisted conversation workspace marker
+          ansible.builtin.slurp:
+            src: "{{ openhands_conversation_workspace }}/container-marker.txt"
+          register: openhands_persisted_workspace_marker
+
+        - name: Reprovision the conversation runtime
+          ansible.builtin.uri:
+            url: >-
+              http://127.0.0.1:8000/api/conversations/{{ openhands_conversation_id }}/runtime/reprovision
+            method: POST
+            headers:
+              X-Session-API-Key: "{{ openhands_backend_api_key }}"
+            status_code: 200
+          register: openhands_conversation_reprovision
+          no_log: true
+
+        - name: Find the reprovisioned conversation container
+          ansible.builtin.command:
+            argv:
+              - runuser
+              - -u
+              - openhands
+              - --
+              - docker
+              - ps
+              - --quiet
+              - --filter
+              - name=agent-server-conversation-
+          register: openhands_reprovisioned_conversation_containers
+          changed_when: false
+
+        - name: Verify one reprovisioned conversation container is running
+          ansible.builtin.assert:
+            that:
+              - openhands_reprovisioned_conversation_containers.stdout_lines | length == 1
+
+        - name: Read the workspace marker from the reprovisioned container
+          ansible.builtin.command:
+            argv:
+              - runuser
+              - -u
+              - openhands
+              - --
+              - docker
+              - exec
+              - "{{ openhands_reprovisioned_conversation_containers.stdout_lines | first }}"
+              - cat
+              - /workspace/container-marker.txt
+          register: openhands_reprovisioned_workspace_marker
+          changed_when: false
+
+        - name: Verify the conversation runtime and workspace persistence
+          ansible.builtin.assert:
+            that:
+              - openhands_conversation_runtime.json.runtime_status == 'available'
+              - openhands_conversation_reprovision.json.runtime_status == 'available'
+              - openhands_conversation_containers.stdout_lines | length == 1
+              - openhands_reprovisioned_conversation_containers.stdout_lines | length == 1
+              - >-
+                  (openhands_reprovisioned_conversation_containers.stdout_lines | first) !=
+                  openhands_initial_conversation_container
+              - >-
+                  (openhands_persisted_workspace_marker.content | b64decode).strip() ==
+                  'docker-conversation-persistence'
+              - >-
+                  openhands_reprovisioned_workspace_marker.stdout.strip() ==
+                  'docker-conversation-persistence'
+      always:
+        - name: Delete the integration conversation
+          vars:
+            openhands_cleanup_conversation_id: >-
+              {{ openhands_conversation_id | default('00000000-0000-0000-0000-000000000000') }}
+          ansible.builtin.uri:
+            url: >-
+              http://127.0.0.1:8000/api/conversations/{{ openhands_cleanup_conversation_id }}
+            method: DELETE
+            headers:
+              X-Session-API-Key: "{{ openhands_backend_api_key }}"
+            status_code:
+              - 204
+              - 404
+          failed_when: false
+          no_log: true
+
     - name: Inspect the OpenHands environment file
       ansible.builtin.stat:
         path: /etc/openhands/agent-canvas.env
@@ -67,6 +310,12 @@
       register: openhands_workspace_directory
 
     - name: Verify the service identity and persistence layout
+      vars:
+        openhands_conversation_image_details: >-
+          {{ (openhands_conversation_image_inspect.stdout | from_json | first) }}
+        openhands_expected_docker_architecture:
+          x86_64: amd64
+          aarch64: arm64
       ansible.builtin.assert:
         that:
           - ansible_facts.getent_passwd.openhands is defined
@@ -76,6 +325,11 @@
           - openhands_uvx_version_check.rc == 0
           - openhands_uv_version in openhands_uvx_version_check.stdout
           - openhands_agent_canvas_version_check.stdout.strip() == openhands_agent_canvas_version
+          - >-
+              openhands_conversation_image_details.Architecture ==
+              openhands_expected_docker_architecture[ansible_facts['architecture']]
+          - openhands_conversation_go_version.stdout is match('^go version go[0-9]+[.]')
+          - openhands_server_info.json.conversation_runtime == 'docker'
           - ansible_facts.services['openhands.service'].status == 'enabled'
           - ansible_facts.services['openhands.service'].state == 'running'
           - openhands_environment_file.stat.pw_name == 'root'

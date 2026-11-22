@@ -49,7 +49,8 @@
           'OH_CONVERSATION_RUNTIME',
           'OH_CONVERSATION_RUNTIME_SELECTABLE',
           'OH_SECRET_KEY',
-          'PORT'
+          'PORT',
+          'VITE_WORKING_DIR'
         ]) | list | length) == 0
     fail_msg: >-
       OpenHands configuration is invalid. Check versions, absolute paths,
@@ -147,6 +148,10 @@
 - name: Install managed application prerequisites
   ansible.builtin.include_tasks: prerequisites.yml
   when: openhands_install_prerequisites
+
+- name: Ensure the OpenHands conversation image is available
+  ansible.builtin.include_tasks: conversation-image.yml
+  when: openhands_manage_service
 
 - name: Manage the OpenHands systemd service
   ansible.builtin.include_tasks: service.yml

@@ -106,6 +106,22 @@
       changed_when: false
       failed_when: false
 
+    - name: Capture conversation containers
+      ansible.builtin.command:
+        argv:
+          - runuser
+          - -u
+          - openhands
+          - --
+          - docker
+          - ps
+          - --all
+          - --filter
+          - name=agent-server-conversation-
+      register: openhands_diagnostics_conversation_containers
+      changed_when: false
+      failed_when: false
+
     - name: Capture the installed Agent Canvas stack information
       ansible.builtin.command:
         argv:
@@ -185,6 +201,10 @@
           {{ openhands_diagnostics_docker.stdout | default('') }}
           {{ openhands_diagnostics_docker.stderr | default('') }}
 
+          ## conversation containers
+          {{ openhands_diagnostics_conversation_containers.stdout | default('') }}
+          {{ openhands_diagnostics_conversation_containers.stderr | default('') }}
+
           ## Agent Canvas stack information
           {{ openhands_diagnostics_canvas_info.stdout | default('') }}
           {{ openhands_diagnostics_canvas_info.stderr | default('') }}
@@ -208,6 +228,32 @@
         name: openhands.service
         state: stopped
         enabled: false
+      failed_when: false
+
+    - name: Find remaining conversation containers
+      ansible.builtin.command:
+        argv:
+          - docker
+          - ps
+          - --all
+          - --quiet
+          - --filter
+          - name=agent-server-conversation-
+      register: openhands_remaining_conversation_containers
+      changed_when: false
+      failed_when: false
+
+    - name: Remove remaining conversation containers
+      ansible.builtin.command:
+        argv:
+          - docker
+          - rm
+          - --force
+          - "{{ item }}"
+      loop: "{{ openhands_remaining_conversation_containers.stdout_lines }}"
+      loop_control:
+        label: "{{ item }}"
+      changed_when: true
       failed_when: false
 
     - name: Remove the OpenHands systemd unit

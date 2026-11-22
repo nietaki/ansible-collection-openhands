@@ -44,6 +44,14 @@ privilege escalation, and a working Docker installation; the default
 checks default to 12 attempts with five seconds between attempts. Both values
 can be adjusted with `openhands_health_retries` and `openhands_health_delay`.
 
+When service management is enabled, the role checks for the exact effective
+conversation image as the service account and pulls it only when absent. Native
+integration verifies the selected image architecture, runs `go version` inside
+the official `-golang` image, starts a Docker-backed conversation through Agent
+Canvas, releases and reprovisions its container, and verifies that its bind-
+mounted workspace persists. The default workspace shown by Canvas is
+`openhands_workspace_dir`.
+
 The persistence scenario enables Agent Server and automation debug logging. Its
 cleanup playbook captures a secret-safe diagnostic bundle before removing the
 service, including the systemd journal and state, listening ports, process tree,

@@ -1,0 +1,68 @@
+---
+- name: Inspect the configured conversation image as the service user
+  ansible.builtin.command:
+    argv:
+      - runuser
+      - -u
+      - "{{ openhands_service_user }}"
+      - --
+      - "{{ openhands_docker_executable }}"
+      - image
+      - inspect
+      - "{{ openhands_effective_conversation_image }}"
+  register: openhands_conversation_image_initial_inspect
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Pull the configured conversation image as the service user
+  ansible.builtin.command:
+    argv:
+      - runuser
+      - -u
+      - "{{ openhands_service_user }}"
+      - --
+      - "{{ openhands_docker_executable }}"
+      - image
+      - pull
+      - "{{ openhands_effective_conversation_image }}"
+  when: openhands_conversation_image_initial_inspect.rc != 0
+  changed_when: true
+
+- name: Inspect the available conversation image
+  ansible.builtin.command:
+    argv:
+      - runuser
+      - -u
+      - "{{ openhands_service_user }}"
+      - --
+      - "{{ openhands_docker_executable }}"
+      - image
+      - inspect
+      - "{{ openhands_effective_conversation_image }}"
+  register: openhands_conversation_image_inspect
+  changed_when: false
+  check_mode: false
+  when: >-
+    not ansible_check_mode or
+    openhands_conversation_image_initial_inspect.rc == 0
+
+- name: Validate the conversation image architecture
+  vars:
+    openhands_conversation_image_details: >-
+      {{ (openhands_conversation_image_inspect.stdout | from_json | first) }}
+    openhands_expected_docker_architecture:
+      x86_64: amd64
+      aarch64: arm64
+  ansible.builtin.assert:
+    that:
+      - openhands_conversation_image_details.Id | length > 0
+      - >-
+          openhands_conversation_image_details.Architecture ==
+          openhands_expected_docker_architecture[ansible_facts['architecture']]
+    fail_msg: >-
+      The configured conversation image is unavailable for the target
+      architecture {{ ansible_facts['architecture'] }}.
+  when: >-
+    not ansible_check_mode or
+    openhands_conversation_image_initial_inspect.rc == 0
