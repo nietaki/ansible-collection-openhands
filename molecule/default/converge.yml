@@ -1,5 +1,5 @@
 ---
-- name: Converge the OpenHands role skeleton
+- name: Converge the OpenHands role safely
   hosts: all
   gather_facts: true
   pre_tasks:

@@ -1,0 +1,18 @@
+---
+- name: Exercise the missing Docker executable failure path
+  hosts: all
+  gather_facts: true
+  vars:
+    openhands_manage_service_identity: false
+    openhands_install_prerequisites: false
+    openhands_manage_service: false
+    openhands_docker_executable: /tmp/openhands-interface/missing-docker
+    openhands_docker_group: root
+    openhands_service_user: "{{ ansible_facts.user_id }}"
+    openhands_service_group: root
+    openhands_data_dir: /tmp/openhands-interface/data
+    openhands_workspace_dir: /tmp/openhands-interface/workspaces
+  tasks:
+    - name: Include the role with a missing Docker executable  # noqa role-name[path]
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."

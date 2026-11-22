@@ -1,20 +1,88 @@
 # nietaki.openhands
 
-Deploy OpenHands Agent Canvas with Dockerized conversations on Ubuntu.
+Deploy OpenHands Agent Canvas as a native systemd service with Dockerized
+conversations on Ubuntu 26.04.
 
-> **Project status:** early development. The repository currently contains the
-> role skeleton and CI contract; managed-host provisioning is being added by
-> milestone according to [`notes/implementation-plan.md`](notes/implementation-plan.md).
+> **Project status:** pre-release. The complete deployment path passes native
+> amd64 and arm64 CI, but the first `0.x` release and Galaxy publication remain
+> blocked on exercising the role on the initial `underturn` host.
+
+## Supported deployment
+
+| Item | Supported value |
+| --- | --- |
+| Managed operating system | Ubuntu 26.04 |
+| Managed architectures | amd64 and arm64 |
+| Minimum Ansible version | `ansible-core 2.20` |
+| Service | Full OpenHands Agent Canvas under systemd |
+| Conversation runtime | Docker |
+
+Docker must already be installed and configured. The role validates Docker
+availability and access but does not install Docker, configure its daemon, or
+manage host networking, firewalls, DNS, TLS, tunnels, or reverse proxies.
+
+Docker group membership is effectively host-root-equivalent access. This role
+is intended for trusted single-user or trusted-team infrastructure, not hostile
+multi-tenancy.
+
+## Default application stack
+
+The role uses reviewed, explicit versions:
+
+| Component | Default |
+| --- | --- |
+| Node.js | `24.11.1` |
+| uv | `0.9.30` |
+| Agent Canvas | `1.43.0` |
+| Agent Server image | `rel-1.62.0-golang` |
+
+Downloads are checksum-verified where upstream artifacts provide checksums. The
+conversation image is verified on both native supported architectures.
+
+## Example
+
+```yaml
+---
+- name: Deploy OpenHands Agent Canvas
+  hosts: openhands_hosts
+  become: true
+  roles:
+    - role: nietaki.openhands
+      vars:
+        # Docker Engine and this access group must already exist.
+        openhands_docker_group: docker
+        openhands_public: false
+```
+
+The private default listens on `127.0.0.1:8000`. Public mode requires an
+explicit non-loopback bind address and a backend API key of at least 32
+characters; external access control and TLS remain the consumer's
+responsibility.
+
+See [`examples/main.yml`](examples/main.yml) for the repository example.
+
+## Documentation
+
+- [`docs/configuration.md`](docs/configuration.md) — supported deployment,
+  variables, security implications, paths, images, resources, and upgrades.
+- [`docs/testing.md`](docs/testing.md) — test layers, commands, CI jobs,
+  scenarios, diagnostics, and guidance for adding coverage.
+- [`docs/development.md`](docs/development.md) — development environment and
+  repository workflow.
 
 ## Development
 
-Install the locked development environment and run the checks:
+Install the locked development environment and run the workstation-safe checks:
 
 ```console
 uv sync --locked
 make check
 ```
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) and
-[`docs/development.md`](docs/development.md) for contribution and development
-workflow details.
+The privileged persistence and Docker lifecycle scenario is intentionally not
+part of `make check`. See [`docs/testing.md`](docs/testing.md) before running it
+on a disposable Ubuntu host.
+
+## License
+
+MIT. See [`LICENSE`](LICENSE).

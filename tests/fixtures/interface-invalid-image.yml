@@ -1,0 +1,23 @@
+---
+- name: Exercise an invalid floating conversation image
+  hosts: all
+  gather_facts: true
+  pre_tasks:
+    - name: Determine the local primary group
+      ansible.builtin.command: id -gn
+      register: interface_primary_group
+      changed_when: false
+  vars:
+    openhands_manage_service_identity: false
+    openhands_install_prerequisites: false
+    openhands_manage_service: false
+    openhands_docker_preflight_enabled: false
+    openhands_service_user: "{{ ansible_facts.user_id }}"
+    openhands_service_group: "{{ interface_primary_group.stdout }}"
+    openhands_data_dir: /tmp/openhands-interface/data
+    openhands_workspace_dir: /tmp/openhands-interface/workspaces
+    openhands_conversation_image: ghcr.io/openhands/agent-server:latest-golang
+  tasks:
+    - name: Include the role with a floating conversation image  # noqa role-name[path]
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."

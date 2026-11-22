@@ -1,0 +1,40 @@
+---
+- name: Exercise the inaccessible Docker daemon failure path
+  hosts: all
+  gather_facts: true
+  vars:
+    openhands_manage_service_identity: false
+    openhands_install_prerequisites: false
+    openhands_manage_service: false
+    openhands_docker_executable: /tmp/openhands-interface/fake-docker
+    openhands_docker_group: root
+    openhands_service_user: "{{ ansible_facts.user_id }}"
+    openhands_service_group: root
+    openhands_data_dir: /tmp/openhands-interface/data
+    openhands_workspace_dir: /tmp/openhands-interface/workspaces
+  tasks:
+    - name: Create the contract-test runtime directory
+      ansible.builtin.file:
+        path: /tmp/openhands-interface
+        state: directory
+        mode: "0755"
+
+    - name: Install a Docker executable with an inaccessible daemon
+      ansible.builtin.copy:
+        dest: "{{ openhands_docker_executable }}"
+        mode: "0755"
+        content: |
+          #!/bin/sh
+          if [ "$1" = "--version" ]; then
+            printf '%s\n' 'Docker version 0.0.0, contract test'
+            exit 0
+          fi
+          if [ "$1" = "info" ]; then
+            printf '%s\n' 'simulated Docker daemon unavailable' >&2
+            exit 1
+          fi
+          exit 2
+
+    - name: Include the role with an inaccessible Docker daemon  # noqa role-name[path]
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."

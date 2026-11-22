@@ -59,6 +59,30 @@ class InterfaceContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("OpenHands configuration is invalid", output)
 
+    def test_floating_conversation_image_fails(self) -> None:
+        result = self.run_fixture("interface-invalid-image.yml")
+        output = f"{result.stdout}\n{result.stderr}"
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("OpenHands configuration is invalid", output)
+
+    def test_missing_docker_executable_fails_preflight(self) -> None:
+        result = self.run_fixture("docker-missing.yml")
+        output = f"{result.stdout}\n{result.stderr}"
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Check Docker executable", output)
+        self.assertNotIn("Create the OpenHands data directory", output)
+
+    def test_inaccessible_docker_daemon_fails_preflight(self) -> None:
+        result = self.run_fixture("docker-daemon-inaccessible.yml")
+        output = f"{result.stdout}\n{result.stderr}"
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Check Docker daemon reachability", output)
+        self.assertIn("simulated Docker daemon unavailable", output)
+        self.assertNotIn("Create the OpenHands data directory", output)
+
     def test_service_template_preserves_directive_boundaries(self) -> None:
         result = self.run_fixture("service-template.yml")
 

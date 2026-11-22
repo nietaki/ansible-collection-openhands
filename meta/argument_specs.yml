@@ -64,7 +64,7 @@ argument_specs:
       openhands_docker_preflight_enabled:
         type: bool
         default: true
-        description: Check Docker executable, daemon, and group availability.
+        description: Check Docker executable and daemon availability before mutation.
       openhands_bind_host:
         type: str
         default: 127.0.0.1

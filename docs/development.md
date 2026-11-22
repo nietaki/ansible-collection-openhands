@@ -1,78 +1,93 @@
 # Development
 
-This repository is a standalone Ansible role. The role name is `openhands` and
-its Galaxy identifier will be `nietaki.openhands`.
+This repository is a standalone Ansible role. Its role name is `openhands`, its
+Galaxy identifier is `nietaki.openhands`, and all public variables use the
+`openhands_` prefix.
 
-## Tooling
+## Development environment
 
 Development dependencies are declared in `pyproject.toml` and resolved in
-`uv.lock`. Use the locked environment for local work:
+`uv.lock`. Install the locked environment with:
 
 ```console
 uv sync --locked
 ```
 
-The main checks are available through the Makefile:
+Use the Makefile as the local command interface:
 
 ```console
-make lint       # yamllint and ansible-lint
-make test       # contract tests
-make molecule   # delegated no-op Molecule scenario
-make check      # all of the above
+make lint                   # yamllint and ansible-lint
+make test                   # portable Python contract tests
+make molecule               # safe local Molecule scenario
+make check                  # lint, contract tests, and local Molecule
+make molecule-persistence   # privileged native integration scenario
 ```
 
-The delegated scenario runs against the local machine and uses temporary
-persistence paths without creating a system account, installing prerequisites,
-or managing systemd. It is a smoke test for role loading and CI wiring; native
-integration is responsible for exercising the managed service identity,
-application installation, and service lifecycle.
+See [`testing.md`](testing.md) for the purpose, prerequisites, and related files
+for every test layer. In particular, review that document before running the
+persistence scenario outside CI.
 
-The preliminary role interface is demonstrated in
-[`examples/main.yml`](../examples/main.yml). The role performs configuration
-validation and, by default, a read-only Docker executable and daemon preflight.
-Docker installation and daemon configuration remain outside the role. The
-managed service writes `/etc/openhands/agent-canvas.env` with mode `0640`,
-renders `/etc/systemd/system/openhands.service`, and runs as the dedicated
-service user. Docker group membership grants effectively host-root-equivalent
-access to the Docker daemon, so it should be treated as a privileged trust
-boundary.
+## Repository layout
 
-The `molecule-persistence` Make target runs the privileged persistence and
-prerequisite scenario used by native CI. It requires a Linux host, passwordless
-privilege escalation, and a working Docker installation; the default
-`make check` path remains safe for developer workstations. Agent Canvas health
-checks default to 12 attempts with five seconds between attempts. Both values
-can be adjusted with `openhands_health_retries` and `openhands_health_delay`.
+Important paths include:
 
-When service management is enabled, the role checks for the exact effective
-conversation image as the service account and pulls it only when absent. The
-default uses the `rel-1.62.0-golang` image produced for the validated Agent
-Server `v1.62.0` release branch. The upstream `1.62.0-golang` release tag was
-published from the Python/Node base image and does not contain Go, despite its
-suffix. Native integration therefore verifies the release-branch image
-architecture and runs `go version` before starting a Docker-backed conversation
-through Agent Canvas, releasing and reprovisioning its container, and verifying
-that its bind-mounted workspace persists. The default workspace shown by Canvas
-is `openhands_workspace_dir`.
+| Path | Purpose |
+| --- | --- |
+| `defaults/main.yml` | Public defaults and pinned application versions |
+| `meta/argument_specs.yml` | Public variable types and short descriptions |
+| `tasks/` | Validation, prerequisites, image preparation, and service management |
+| `templates/` | Restricted environment file and systemd unit |
+| `handlers/main.yml` | systemd reload and service restart handlers |
+| `molecule/default/` | Safe delegated convergence and idempotence |
+| `molecule/persistence/` | Privileged native lifecycle integration |
+| `tests/contract/` | Portable interface and policy tests |
+| `tests/fixtures/` | Small Ansible playbooks used by tests and CI |
+| `.github/workflows/ci.yml` | Quality, compatibility, and native CI jobs |
+| `docs/` | Detailed operator and developer documentation |
+| `notes/implementation-plan.md` | Living design history and deferred work |
 
-The persistence scenario enables Agent Server and automation debug logging. Its
-cleanup playbook captures a secret-safe diagnostic bundle before removing the
-service, including the systemd journal and state, listening ports, process tree,
-service identity, Docker access, installed stack information, and relevant path
-metadata. Native CI uploads this bundle for seven days even when the scenario
-fails. The rendered environment file and systemd environment values are
-intentionally excluded because they can contain credentials.
+## Making changes
 
-The CI compatibility job checks three Ansible versions: the declared minimum
-(`2.20.0`), the latest version available from PyPI, and the version currently
-used by the primary `kotik` consumer (`2.22.0`). These checks use isolated uv
-environments so the locked development environment cannot accidentally mask a
-compatibility problem.
+Keep changes focused and update the narrowest useful test layer. Managed-host
+behavior should preserve idempotence and normally have native integration
+coverage where it depends on systemd, Docker, permissions, downloads, or real
+service behavior.
 
-## Milestones
+When adding or changing a public variable:
 
-Implementation follows `notes/implementation-plan.md`. Keep milestone commits
-coherent, avoid mixing unrelated work, and update the plan when a decision
-changes. The initial CI matrix deliberately uses native `amd64` and `arm64`
-GitHub-hosted Ubuntu runners so architecture-specific installation behavior can
-be tested without nested virtualization.
+1. update `defaults/main.yml`;
+2. update `meta/argument_specs.yml`;
+3. add cross-variable validation in `tasks/main.yml` when types are
+   insufficient;
+4. update [`configuration.md`](configuration.md);
+5. add or update contract fixtures;
+6. update native integration assertions when runtime behavior changes.
+
+Do not commit credentials, generated secrets, local virtual environments,
+diagnostic bundles, or unreviewed lock-file changes.
+
+## Dependency updates
+
+Node.js, uv, Agent Canvas, and the Agent Server image are intentionally pinned.
+A dependency update should include:
+
+- the exact new version or image tag;
+- architecture-specific checksums where applicable;
+- evidence that the selected image contains the required runtime tools;
+- updated documentation;
+- successful portable checks and native amd64/arm64 integration.
+
+Do not assume that an upstream image suffix proves its contents. The current
+Agent Server default uses `rel-1.62.0-golang` because upstream's final
+`1.62.0-golang` tag was built from the wrong base image.
+
+## CI and diagnostics
+
+CI checks the declared minimum Ansible version, the latest available Ansible
+Core, and the version used by the primary `kotik` consumer. Native integration
+runs on both amd64 and arm64 Ubuntu 26.04 runners.
+
+The persistence cleanup captures a secret-safe bundle in
+`/tmp/openhands-ci-diagnostics/`, and CI uploads it even after failures. Never
+add the rendered environment file, systemd environment values, API keys, or
+arbitrary extra environment values to diagnostics.
