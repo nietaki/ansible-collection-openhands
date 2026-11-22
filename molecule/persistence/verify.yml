@@ -74,7 +74,7 @@
           - run
           - --rm
           - --entrypoint
-          - go
+          - /usr/local/go/bin/go
           - "{{ openhands_conversation_image }}"
           - version
       register: openhands_conversation_go_version
