@@ -8,24 +8,29 @@ openhands_uv_architecture_suffix:
   x86_64: x86_64-unknown-linux-gnu
   aarch64: aarch64-unknown-linux-gnu
 openhands_node_release_name: >-
-  node-v{{ openhands_node_version }}-linux-{{ openhands_node_architecture_suffix[ansible_architecture] }}
+  node-v{{ openhands_node_version }}-linux-{{ openhands_node_architecture_suffix[ansible_facts['architecture']] }}
 openhands_node_archive_name: "{{ openhands_node_release_name }}.tar.gz"
 openhands_node_release_dir: "{{ openhands_install_prefix }}/{{ openhands_node_release_name }}"
 openhands_node_archive_url: >-
   https://nodejs.org/download/release/v{{ openhands_node_version }}/{{ openhands_node_archive_name }}
-openhands_node_checksum: >-
-  {{ {'x86_64': openhands_node_checksum_x86_64, 'aarch64': openhands_node_checksum_aarch64}[ansible_architecture] }}
+openhands_node_checksums:
+  x86_64: "{{ openhands_node_checksum_x86_64 }}"
+  aarch64: "{{ openhands_node_checksum_aarch64 }}"
+openhands_node_checksum: "{{ openhands_node_checksums[ansible_facts['architecture']] }}"
 openhands_node_bin: "{{ openhands_install_prefix }}/node/bin/node"
 openhands_npm_bin: "{{ openhands_install_prefix }}/node/bin/npm"
 openhands_uv_archive_name: >-
-  uv-{{ openhands_uv_architecture_suffix[ansible_architecture] }}.tar.gz
+  uv-{{ openhands_uv_architecture_suffix[ansible_facts['architecture']] }}.tar.gz
 openhands_uv_release_dir: >-
-  {{ openhands_install_prefix }}/uv-{{ openhands_uv_architecture_suffix[ansible_architecture] }}
+  {{ openhands_install_prefix }}/uv-{{ openhands_uv_architecture_suffix[ansible_facts['architecture']] }}
 openhands_uv_archive_url: >-
   https://github.com/astral-sh/uv/releases/download/{{ openhands_uv_version }}/{{ openhands_uv_archive_name }}
-openhands_uv_checksum: >-
-  {{ {'x86_64': openhands_uv_checksum_x86_64, 'aarch64': openhands_uv_checksum_aarch64}[ansible_architecture] }}
-openhands_uv_bin: "{{ openhands_install_prefix }}/uv/bin/uv"
+openhands_uv_checksums:
+  x86_64: "{{ openhands_uv_checksum_x86_64 }}"
+  aarch64: "{{ openhands_uv_checksum_aarch64 }}"
+openhands_uv_checksum: "{{ openhands_uv_checksums[ansible_facts['architecture']] }}"
+openhands_uv_bin: "{{ openhands_install_prefix }}/uv/uv"
+openhands_uvx_bin: "{{ openhands_install_prefix }}/uv/uvx"
 openhands_agent_canvas_prefix: "{{ openhands_install_prefix }}/agent-canvas"
 openhands_agent_canvas_archive_name: >-
   agent-canvas-{{ openhands_agent_canvas_version }}.tgz
@@ -36,8 +41,9 @@ openhands_agent_canvas_archive_path: >-
 openhands_agent_canvas_bin: >-
   {{ openhands_agent_canvas_prefix }}/bin/agent-canvas
 openhands_system_path: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-openhands_runtime_path: >-
-  {{ openhands_install_prefix }}/node/bin:{{ openhands_agent_canvas_prefix }}/bin:{{ openhands_system_path }}
+openhands_runtime_path_prefix: >-
+  {{ openhands_install_prefix }}/node/bin:{{ openhands_agent_canvas_prefix }}/bin:{{ openhands_install_prefix }}/uv
+openhands_runtime_path: "{{ openhands_runtime_path_prefix }}:{{ openhands_system_path }}"
 openhands_environment_dir: /etc/openhands
 openhands_environment_file: "{{ openhands_environment_dir }}/agent-canvas.env"
 openhands_systemd_unit: /etc/systemd/system/openhands.service

@@ -51,10 +51,38 @@
     remote_src: true
     creates: "{{ openhands_uv_release_dir }}"
 
-- name: Point the stable uv path at the configured release
+- name: Inspect the stable uv path
+  ansible.builtin.stat:
+    path: "{{ openhands_install_prefix }}/uv"
+    follow: false
+  register: openhands_stable_uv_path
+
+- name: Remove the legacy stable uv symlink
+  ansible.builtin.file:
+    path: "{{ openhands_install_prefix }}/uv"
+    state: absent
+  when: openhands_stable_uv_path.stat.islnk | default(false)
+
+- name: Create the stable uv executable directory
+  ansible.builtin.file:
+    path: "{{ openhands_install_prefix }}/uv"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Point the stable uv executable at the configured release
   ansible.builtin.file:
     src: "{{ openhands_uv_release_dir }}/uv"
-    dest: "{{ openhands_install_prefix }}/uv"
+    dest: "{{ openhands_install_prefix }}/uv/uv"
+    state: link
+    force: true
+  notify: Restart OpenHands service
+
+- name: Point the stable uvx executable at the configured release
+  ansible.builtin.file:
+    src: "{{ openhands_uv_release_dir }}/uvx"
+    dest: "{{ openhands_install_prefix }}/uv/uvx"
     state: link
     force: true
   notify: Restart OpenHands service
@@ -125,6 +153,16 @@
   changed_when: false
   check_mode: false
   failed_when: ('uv ' ~ openhands_uv_version) not in openhands_uv_version_check.stdout
+
+- name: Verify the installed uvx version
+  ansible.builtin.command:
+    argv:
+      - "{{ openhands_uvx_bin }}"
+      - --version
+  register: openhands_uvx_version_check
+  changed_when: false
+  check_mode: false
+  failed_when: openhands_uvx_version_check.rc != 0 or openhands_uv_version not in openhands_uvx_version_check.stdout
 
 - name: Verify the installed Agent Canvas version
   ansible.builtin.command:

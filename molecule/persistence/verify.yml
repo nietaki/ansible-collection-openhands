@@ -24,8 +24,13 @@
       changed_when: false
 
     - name: Verify the installed uv version
-      ansible.builtin.command: /opt/openhands/uv/bin/uv --version
+      ansible.builtin.command: /opt/openhands/uv/uv --version
       register: openhands_uv_version_check
+      changed_when: false
+
+    - name: Verify the installed uvx version
+      ansible.builtin.command: /opt/openhands/uv/uvx --version
+      register: openhands_uvx_version_check
       changed_when: false
 
     - name: Verify the installed Agent Canvas version
@@ -68,6 +73,8 @@
           - "'docker' in openhands_groups.stdout.split()"
           - openhands_node_version_check.stdout.strip() == 'v' ~ openhands_node_version
           - ('uv ' ~ openhands_uv_version) in openhands_uv_version_check.stdout
+          - openhands_uvx_version_check.rc == 0
+          - openhands_uv_version in openhands_uvx_version_check.stdout
           - openhands_agent_canvas_version_check.stdout.strip() == openhands_agent_canvas_version
           - ansible_facts.services['openhands.service'].status == 'enabled'
           - ansible_facts.services['openhands.service'].state == 'running'
