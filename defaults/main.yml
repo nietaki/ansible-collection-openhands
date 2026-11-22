@@ -35,7 +35,7 @@ openhands_data_dir: /var/lib/openhands
 openhands_workspace_dir: /srv/openhands/workspaces
 
 # Docker conversation runtime.
-openhands_conversation_image: ghcr.io/openhands/agent-server:1.62.0-golang
+openhands_conversation_image: ghcr.io/openhands/agent-server:rel-1.62.0-golang
 openhands_conversation_image_digest: ""
 openhands_conversation_memory: 4g
 openhands_conversation_cpus: "2.0"

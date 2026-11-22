@@ -45,12 +45,15 @@ checks default to 12 attempts with five seconds between attempts. Both values
 can be adjusted with `openhands_health_retries` and `openhands_health_delay`.
 
 When service management is enabled, the role checks for the exact effective
-conversation image as the service account and pulls it only when absent. Native
-integration verifies the selected image architecture, runs `go version` inside
-the official `-golang` image, starts a Docker-backed conversation through Agent
-Canvas, releases and reprovisions its container, and verifies that its bind-
-mounted workspace persists. The default workspace shown by Canvas is
-`openhands_workspace_dir`.
+conversation image as the service account and pulls it only when absent. The
+default uses the `rel-1.62.0-golang` image produced for the validated Agent
+Server `v1.62.0` release branch. The upstream `1.62.0-golang` release tag was
+published from the Python/Node base image and does not contain Go, despite its
+suffix. Native integration therefore verifies the release-branch image
+architecture and runs `go version` before starting a Docker-backed conversation
+through Agent Canvas, releasing and reprovisioning its container, and verifying
+that its bind-mounted workspace persists. The default workspace shown by Canvas
+is `openhands_workspace_dir`.
 
 The persistence scenario enables Agent Server and automation debug logging. Its
 cleanup playbook captures a secret-safe diagnostic bundle before removing the

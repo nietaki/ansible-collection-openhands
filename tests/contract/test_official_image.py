@@ -38,6 +38,13 @@ class OfficialImageContractTests(unittest.TestCase):
             )
         )
 
+    def test_accepts_release_branch_image(self) -> None:
+        self.assertTrue(
+            is_official_golang_image(
+                "ghcr.io/openhands/agent-server:rel-1.62.0-golang"
+            )
+        )
+
     def test_rejects_floating_tags(self) -> None:
         self.assertFalse(
             is_official_golang_image(
