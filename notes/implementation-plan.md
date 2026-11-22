@@ -302,8 +302,14 @@ The exact interface is not final, but the current direction is a flat,
 ```yaml
 # Versions and installation
 openhands_node_version: "<exact-version>"
+openhands_node_checksum_x86_64: "<sha256>"
+openhands_node_checksum_aarch64: "<sha256>"
 openhands_uv_version: "<exact-version>"
+openhands_uv_checksum_x86_64: "<sha256>"
+openhands_uv_checksum_aarch64: "<sha256>"
 openhands_agent_canvas_version: "<exact-version>"
+openhands_agent_canvas_checksum: "<sha512>"
+openhands_install_prerequisites: true
 
 # Service identity
 openhands_service_user: openhands

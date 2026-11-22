@@ -3,8 +3,15 @@
 # upgrade is a reviewed role configuration change rather than an implicit
 # latest-version upgrade.
 openhands_node_version: "24.11.1"
+openhands_node_checksum_x86_64: 58a5ff5cc8f2200e458bea22e329d5c1994aa1b111d499ca46ec2411d58239ca
+openhands_node_checksum_aarch64: 0dc93ec5c798b0d347f068db6d205d03dea9a71765e6a53922b682b91265d71f
 openhands_uv_version: "0.9.30"
+openhands_uv_checksum_x86_64: 8b3762374972daa7a74bbc6896cc73229ca69a07403dd9f9ea3805a51ffd7582
+openhands_uv_checksum_aarch64: 6aadf3c71600d594e16dabf382cc15282ead4c5ca768599b6bcb43c5004d9aa8
 openhands_agent_canvas_version: "1.43.0"
+openhands_agent_canvas_checksum: >-
+  5830de4ec20a8d0da93e3b294e2940824b045034fba6c719692688bbdf9b5d743279896f8a486999001300320ba05a917d204f36e4213999d5f02b974b690788
+openhands_install_prerequisites: true
 
 # Service identity and Docker access.
 openhands_service_user: openhands

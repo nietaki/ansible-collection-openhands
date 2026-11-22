@@ -1,0 +1,136 @@
+---
+- name: Create the OpenHands application prefix
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ openhands_install_prefix }}"
+    - "{{ openhands_download_dir }}"
+    - "{{ openhands_agent_canvas_prefix }}"
+
+- name: Download the pinned Node.js archive
+  ansible.builtin.get_url:
+    url: "{{ openhands_node_archive_url }}"
+    dest: "{{ openhands_download_dir }}/{{ openhands_node_archive_name }}"
+    checksum: "sha256:{{ openhands_node_checksum }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Extract the pinned Node.js archive
+  ansible.builtin.unarchive:
+    src: "{{ openhands_download_dir }}/{{ openhands_node_archive_name }}"
+    dest: "{{ openhands_install_prefix }}"
+    remote_src: true
+    creates: "{{ openhands_node_release_dir }}"
+
+- name: Point the stable Node.js path at the configured release
+  ansible.builtin.file:
+    src: "{{ openhands_node_release_dir }}"
+    dest: "{{ openhands_install_prefix }}/node"
+    state: link
+    force: true
+
+- name: Download the pinned uv archive
+  ansible.builtin.get_url:
+    url: "{{ openhands_uv_archive_url }}"
+    dest: "{{ openhands_download_dir }}/{{ openhands_uv_archive_name }}"
+    checksum: "sha256:{{ openhands_uv_checksum }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Extract the pinned uv archive
+  ansible.builtin.unarchive:
+    src: "{{ openhands_download_dir }}/{{ openhands_uv_archive_name }}"
+    dest: "{{ openhands_install_prefix }}"
+    remote_src: true
+    creates: "{{ openhands_uv_release_dir }}"
+
+- name: Point the stable uv path at the configured release
+  ansible.builtin.file:
+    src: "{{ openhands_uv_release_dir }}/uv"
+    dest: "{{ openhands_install_prefix }}/uv"
+    state: link
+    force: true
+
+- name: Download the pinned Agent Canvas package
+  ansible.builtin.get_url:
+    url: "{{ openhands_agent_canvas_archive_url }}"
+    dest: "{{ openhands_agent_canvas_archive_path }}"
+    checksum: "sha512:{{ openhands_agent_canvas_checksum }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Check the installed Agent Canvas version
+  ansible.builtin.command:
+    argv:
+      - "{{ openhands_npm_bin }}"
+      - list
+      - --global
+      - --prefix
+      - "{{ openhands_agent_canvas_prefix }}"
+      - --depth=0
+      - "@openhands/agent-canvas"
+  register: openhands_agent_canvas_installed
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  environment:
+    PATH: "{{ openhands_runtime_path }}"
+
+- name: Install the pinned Agent Canvas package
+  ansible.builtin.command:
+    argv:
+      - "{{ openhands_npm_bin }}"
+      - install
+      - --global
+      - --prefix
+      - "{{ openhands_agent_canvas_prefix }}"
+      - "{{ openhands_agent_canvas_archive_path }}"
+  when: >-
+    openhands_agent_canvas_installed.rc != 0 or
+    ('@openhands/agent-canvas@' ~ openhands_agent_canvas_version) not in
+    openhands_agent_canvas_installed.stdout
+  changed_when: true
+  environment:
+    PATH: "{{ openhands_runtime_path }}"
+    NPM_CONFIG_AUDIT: "false"
+    NPM_CONFIG_FUND: "false"
+    NPM_CONFIG_UPDATE_NOTIFIER: "false"
+
+- name: Verify the installed Node.js version
+  ansible.builtin.command:
+    argv:
+      - "{{ openhands_node_bin }}"
+      - --version
+  register: openhands_node_version_check
+  changed_when: false
+  check_mode: false
+  failed_when: openhands_node_version_check.stdout.strip() != 'v' ~ openhands_node_version
+
+- name: Verify the installed uv version
+  ansible.builtin.command:
+    argv:
+      - "{{ openhands_uv_bin }}"
+      - --version
+  register: openhands_uv_version_check
+  changed_when: false
+  check_mode: false
+  failed_when: ('uv ' ~ openhands_uv_version) not in openhands_uv_version_check.stdout
+
+- name: Verify the installed Agent Canvas version
+  ansible.builtin.command:
+    argv:
+      - "{{ openhands_agent_canvas_bin }}"
+      - --version
+  register: openhands_agent_canvas_version_check
+  changed_when: false
+  check_mode: false
+  failed_when: openhands_agent_canvas_version_check.stdout.strip() != openhands_agent_canvas_version
+  environment:
+    PATH: "{{ openhands_runtime_path }}"

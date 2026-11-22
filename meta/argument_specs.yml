@@ -9,15 +9,34 @@ argument_specs:
       openhands_node_version:
         type: str
         default: "24.11.1"
-        description: Exact Node.js release to install in a later milestone.
+        description: Exact Node.js release to install.
+      openhands_node_checksum_x86_64:
+        type: str
+        description: SHA-256 checksum for the x86_64 Node.js archive.
+      openhands_node_checksum_aarch64:
+        type: str
+        description: SHA-256 checksum for the aarch64 Node.js archive.
       openhands_uv_version:
         type: str
         default: "0.9.30"
-        description: Exact uv release to install in a later milestone.
+        description: Exact uv release to install.
+      openhands_uv_checksum_x86_64:
+        type: str
+        description: SHA-256 checksum for the x86_64 uv archive.
+      openhands_uv_checksum_aarch64:
+        type: str
+        description: SHA-256 checksum for the aarch64 uv archive.
       openhands_agent_canvas_version:
         type: str
         default: "1.43.0"
-        description: Exact Agent Canvas npm package version to install later.
+        description: Exact Agent Canvas npm package version to install.
+      openhands_agent_canvas_checksum:
+        type: str
+        description: SHA-512 checksum for the Agent Canvas npm archive.
+      openhands_install_prerequisites:
+        type: bool
+        default: true
+        description: Install the pinned Node.js, uv, and Agent Canvas prerequisites.
       openhands_service_user:
         type: str
         default: openhands

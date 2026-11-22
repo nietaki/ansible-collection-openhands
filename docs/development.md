@@ -31,10 +31,10 @@ The preliminary role interface is demonstrated in
 validation and, by default, a read-only Docker executable and daemon preflight.
 Docker installation and daemon configuration remain outside the role.
 
-The `molecule-persistence` Make target runs the privileged persistence scenario
-used by native CI. It requires a Linux host, passwordless privilege escalation,
-and a working Docker installation; the default `make check` path remains safe
-for developer workstations.
+The `molecule-persistence` Make target runs the privileged persistence and
+prerequisite scenario used by native CI. It requires a Linux host, passwordless
+privilege escalation, and a working Docker installation; the default
+`make check` path remains safe for developer workstations.
 
 The CI compatibility job checks three Ansible versions: the declared minimum
 (`2.20.0`), the latest version available from PyPI, and the version currently

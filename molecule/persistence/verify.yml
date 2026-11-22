@@ -3,6 +3,10 @@
   hosts: all
   become: true
   gather_facts: false
+  vars:
+    openhands_node_version: "24.11.1"
+    openhands_uv_version: "0.9.30"
+    openhands_agent_canvas_version: "1.43.0"
   tasks:
     - name: Look up the service account
       ansible.builtin.getent:
@@ -12,6 +16,21 @@
     - name: Inspect the service account groups
       ansible.builtin.command: id -nG openhands
       register: openhands_groups
+      changed_when: false
+
+    - name: Verify the installed Node.js version
+      ansible.builtin.command: /opt/openhands/node/bin/node --version
+      register: openhands_node_version_check
+      changed_when: false
+
+    - name: Verify the installed uv version
+      ansible.builtin.command: /opt/openhands/uv/bin/uv --version
+      register: openhands_uv_version_check
+      changed_when: false
+
+    - name: Verify the installed Agent Canvas version
+      ansible.builtin.command: /opt/openhands/agent-canvas/bin/agent-canvas --version
+      register: openhands_agent_canvas_version_check
       changed_when: false
 
     - name: Inspect the data directory
@@ -29,6 +48,9 @@
         that:
           - ansible_facts.getent_passwd.openhands is defined
           - "'docker' in openhands_groups.stdout.split()"
+          - openhands_node_version_check.stdout.strip() == 'v' ~ openhands_node_version
+          - ('uv ' ~ openhands_uv_version) in openhands_uv_version_check.stdout
+          - openhands_agent_canvas_version_check.stdout.strip() == openhands_agent_canvas_version
           - openhands_data_directory.stat.pw_name == 'openhands'
           - openhands_data_directory.stat.gr_name == 'openhands'
           - openhands_data_directory.stat.mode == '0750'
