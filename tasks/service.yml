@@ -38,17 +38,17 @@
 - name: Apply pending OpenHands service changes before verification
   ansible.builtin.meta: flush_handlers
 
-- name: Verify the running Agent Canvas version
+- name: Verify the installed Agent Canvas version
   ansible.builtin.command:
     argv:
       - "{{ openhands_agent_canvas_bin }}"
       - --version
-  become: true
-  become_user: "{{ openhands_service_user }}"
   register: openhands_running_canvas_version
   changed_when: false
   check_mode: false
-  failed_when: openhands_running_canvas_version.stdout.strip() != openhands_agent_canvas_version
+  failed_when: >-
+    openhands_running_canvas_version.stdout.strip() !=
+    openhands_agent_canvas_version
   environment:
     HOME: "{{ openhands_data_dir }}"
     PATH: "{{ openhands_runtime_path }}"
