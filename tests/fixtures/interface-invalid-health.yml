@@ -1,0 +1,11 @@
+---
+- name: Exercise an invalid OpenHands health-check configuration
+  hosts: all
+  gather_facts: false
+  vars:
+    openhands_docker_preflight_enabled: false
+    openhands_health_retries: 0
+  tasks:
+    - name: Include the role with invalid health-check retries  # noqa role-name[path]
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."

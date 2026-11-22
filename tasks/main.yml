@@ -20,6 +20,8 @@
       - openhands_port | int < 65536
       - not openhands_public or openhands_backend_api_key | length >= 32
       - openhands_bind_host in ['127.0.0.1', 'localhost', '::1'] or openhands_public
+      - openhands_health_retries | int > 0
+      - openhands_health_delay | int > 0
       - openhands_data_dir is match('^/')
       - openhands_data_dir != '/'
       - openhands_workspace_dir is match('^/')

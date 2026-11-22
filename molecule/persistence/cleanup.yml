@@ -3,7 +3,206 @@
   hosts: all
   become: true
   gather_facts: false
+  vars:
+    openhands_diagnostics_dir: /tmp/openhands-ci-diagnostics
+    openhands_runtime_path_parts:
+      - /opt/openhands/node/bin
+      - /opt/openhands/agent-canvas/bin
+      - /opt/openhands/uv
+      - /usr/local/sbin
+      - /usr/local/bin
+      - /usr/sbin
+      - /usr/bin
+      - /sbin
+      - /bin
+    openhands_runtime_path: "{{ openhands_runtime_path_parts | join(':') }}"
   tasks:
+    - name: Create the OpenHands diagnostics directory
+      ansible.builtin.file:
+        path: "{{ openhands_diagnostics_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Capture OpenHands systemd status
+      ansible.builtin.command:
+        argv:
+          - systemctl
+          - status
+          - openhands.service
+          - --full
+          - --no-pager
+      register: openhands_diagnostics_systemd_status
+      changed_when: false
+      failed_when: false
+
+    - name: Capture OpenHands systemd properties
+      ansible.builtin.command:
+        argv:
+          - systemctl
+          - show
+          - openhands.service
+          - --property=ActiveState
+          - --property=SubState
+          - --property=Result
+          - --property=MainPID
+          - --property=ExecMainCode
+          - --property=ExecMainStatus
+          - --property=NRestarts
+      register: openhands_diagnostics_systemd_properties
+      changed_when: false
+      failed_when: false
+
+    - name: Capture the rendered OpenHands systemd unit
+      ansible.builtin.command:
+        argv:
+          - systemctl
+          - cat
+          - openhands.service
+          - --no-pager
+      register: openhands_diagnostics_systemd_unit
+      changed_when: false
+      failed_when: false
+
+    - name: Capture listening TCP ports
+      ansible.builtin.command:
+        argv:
+          - ss
+          - -ltnp
+      register: openhands_diagnostics_ports
+      changed_when: false
+      failed_when: false
+
+    - name: Capture the process tree
+      ansible.builtin.command:
+        argv:
+          - ps
+          - -ef
+          - --forest
+      register: openhands_diagnostics_processes
+      changed_when: false
+      failed_when: false
+
+    - name: Capture the OpenHands service identity
+      ansible.builtin.command:
+        argv:
+          - id
+          - openhands
+      register: openhands_diagnostics_identity
+      changed_when: false
+      failed_when: false
+
+    - name: Check Docker access as the OpenHands service user
+      ansible.builtin.command:
+        argv:
+          - runuser
+          - -u
+          - openhands
+          - --
+          - docker
+          - info
+      register: openhands_diagnostics_docker
+      changed_when: false
+      failed_when: false
+
+    - name: Capture the installed Agent Canvas stack information
+      ansible.builtin.command:
+        argv:
+          - runuser
+          - -u
+          - openhands
+          - --
+          - env
+          - HOME=/var/lib/openhands
+          - "PATH={{ openhands_runtime_path }}"
+          - /opt/openhands/agent-canvas/bin/agent-canvas
+          - --info
+      register: openhands_diagnostics_canvas_info
+      changed_when: false
+      failed_when: false
+
+    - name: Capture OpenHands path metadata
+      ansible.builtin.command:
+        argv:
+          - stat
+          - --format=%A %U:%G %n
+          - /var/lib/openhands
+          - /srv/openhands/workspaces
+          - /opt/openhands
+          - /opt/openhands/uv/uv
+          - /opt/openhands/uv/uvx
+          - /opt/openhands/agent-canvas/bin/agent-canvas
+          - /etc/systemd/system/openhands.service
+      register: openhands_diagnostics_paths
+      changed_when: false
+      failed_when: false
+
+    - name: Capture the OpenHands service journal
+      ansible.builtin.command:
+        argv:
+          - journalctl
+          - --unit=openhands.service
+          - --boot=0
+          - --output=short-precise
+          - --no-pager
+      register: openhands_diagnostics_journal
+      changed_when: false
+      failed_when: false
+
+    - name: Write the OpenHands diagnostic summary
+      ansible.builtin.copy:
+        dest: "{{ openhands_diagnostics_dir }}/summary.txt"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          ## systemctl status
+          {{ openhands_diagnostics_systemd_status.stdout | default('') }}
+          {{ openhands_diagnostics_systemd_status.stderr | default('') }}
+
+          ## systemctl properties
+          {{ openhands_diagnostics_systemd_properties.stdout | default('') }}
+          {{ openhands_diagnostics_systemd_properties.stderr | default('') }}
+
+          ## systemd unit
+          {{ openhands_diagnostics_systemd_unit.stdout | default('') }}
+          {{ openhands_diagnostics_systemd_unit.stderr | default('') }}
+
+          ## listening TCP ports
+          {{ openhands_diagnostics_ports.stdout | default('') }}
+          {{ openhands_diagnostics_ports.stderr | default('') }}
+
+          ## process tree
+          {{ openhands_diagnostics_processes.stdout | default('') }}
+          {{ openhands_diagnostics_processes.stderr | default('') }}
+
+          ## service identity
+          {{ openhands_diagnostics_identity.stdout | default('') }}
+          {{ openhands_diagnostics_identity.stderr | default('') }}
+
+          ## Docker access as service user
+          {{ openhands_diagnostics_docker.stdout | default('') }}
+          {{ openhands_diagnostics_docker.stderr | default('') }}
+
+          ## Agent Canvas stack information
+          {{ openhands_diagnostics_canvas_info.stdout | default('') }}
+          {{ openhands_diagnostics_canvas_info.stderr | default('') }}
+
+          ## path metadata
+          {{ openhands_diagnostics_paths.stdout | default('') }}
+          {{ openhands_diagnostics_paths.stderr | default('') }}
+
+    - name: Write the OpenHands service journal
+      ansible.builtin.copy:
+        dest: "{{ openhands_diagnostics_dir }}/journal.log"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          {{ openhands_diagnostics_journal.stdout | default('') }}
+          {{ openhands_diagnostics_journal.stderr | default('') }}
+
     - name: Stop and disable the OpenHands service
       ansible.builtin.systemd_service:
         name: openhands.service

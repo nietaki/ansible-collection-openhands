@@ -3,5 +3,10 @@
   hosts: all
   become: true
   gather_facts: true
+  vars:
+    openhands_backend_api_key: ci-only-openhands-backend-key-0001
+    openhands_extra_environment:
+      AUTOMATION_LOG_LEVEL: DEBUG
+      LOG_LEVEL: DEBUG
   roles:
     - role: nietaki.openhands

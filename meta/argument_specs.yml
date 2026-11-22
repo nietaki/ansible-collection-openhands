@@ -82,6 +82,14 @@ argument_specs:
         default: ""
         no_log: true
         description: Backend API key required for public mode.
+      openhands_health_retries:
+        type: int
+        default: 12
+        description: Number of local Agent Canvas health-check attempts.
+      openhands_health_delay:
+        type: int
+        default: 5
+        description: Seconds between local Agent Canvas health-check attempts.
       openhands_data_dir:
         type: str
         default: /var/lib/openhands

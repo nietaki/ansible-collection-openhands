@@ -40,7 +40,17 @@ boundary.
 The `molecule-persistence` Make target runs the privileged persistence and
 prerequisite scenario used by native CI. It requires a Linux host, passwordless
 privilege escalation, and a working Docker installation; the default
-`make check` path remains safe for developer workstations.
+`make check` path remains safe for developer workstations. Agent Canvas health
+checks default to 12 attempts with five seconds between attempts. Both values
+can be adjusted with `openhands_health_retries` and `openhands_health_delay`.
+
+The persistence scenario enables Agent Server and automation debug logging. Its
+cleanup playbook captures a secret-safe diagnostic bundle before removing the
+service, including the systemd journal and state, listening ports, process tree,
+service identity, Docker access, installed stack information, and relevant path
+metadata. Native CI uploads this bundle for seven days even when the scenario
+fails. The rendered environment file and systemd environment values are
+intentionally excluded because they can contain credentials.
 
 The CI compatibility job checks three Ansible versions: the declared minimum
 (`2.20.0`), the latest version available from PyPI, and the version currently

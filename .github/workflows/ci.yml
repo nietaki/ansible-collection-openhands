@@ -121,5 +121,18 @@ jobs:
       - name: Run the persistence integration scenario
         run: uv run molecule test -s persistence
 
+      - name: Display the OpenHands journal after failure
+        if: failure()
+        run: sudo journalctl --unit=openhands.service --boot=0 --no-pager --lines=200 || true
+
+      - name: Upload OpenHands integration diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: openhands-diagnostics-${{ matrix.architecture }}-attempt-${{ github.run_attempt }}
+          path: /tmp/openhands-ci-diagnostics/
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Run the official image contract smoke test
         run: uv run python -m unittest tests.contract.test_official_image

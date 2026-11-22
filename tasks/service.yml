@@ -61,6 +61,6 @@
     timeout: 5
   register: openhands_health_check
   until: openhands_health_check.status == 200
-  retries: 60
-  delay: 5
+  retries: "{{ openhands_health_retries }}"
+  delay: "{{ openhands_health_delay }}"
   check_mode: false
