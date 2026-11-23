@@ -52,6 +52,13 @@ class InterfaceContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("OpenHands configuration is invalid", output)
 
+    def test_malformed_non_empty_checksum_fails(self) -> None:
+        result = self.run_fixture("interface-invalid-checksum.yml")
+        output = f"{result.stdout}\n{result.stderr}"
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("OpenHands configuration is invalid", output)
+
     def test_invalid_health_configuration_fails(self) -> None:
         result = self.run_fixture("interface-invalid-health.yml")
         output = f"{result.stdout}\n{result.stderr}"

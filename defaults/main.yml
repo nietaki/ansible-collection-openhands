@@ -3,45 +3,70 @@
 # upgrade is a reviewed role configuration change rather than an implicit
 # latest-version upgrade.
 openhands_node_version: "24.11.1"
-openhands_node_checksum_x86_64: 58a5ff5cc8f2200e458bea22e329d5c1994aa1b111d499ca46ec2411d58239ca
-openhands_node_checksum_aarch64: 0dc93ec5c798b0d347f068db6d205d03dea9a71765e6a53922b682b91265d71f
+# Optional Node.js x86_64 archive SHA-256; empty skips checksum verification.
+openhands_node_checksum_x86_64: ""
+# Optional Node.js aarch64 archive SHA-256; empty skips checksum verification.
+openhands_node_checksum_aarch64: ""
 openhands_uv_version: "0.9.30"
-openhands_uv_checksum_x86_64: 8b3762374972daa7a74bbc6896cc73229ca69a07403dd9f9ea3805a51ffd7582
-openhands_uv_checksum_aarch64: 6aadf3c71600d594e16dabf382cc15282ead4c5ca768599b6bcb43c5004d9aa8
+# Optional uv x86_64 archive SHA-256; empty skips checksum verification.
+openhands_uv_checksum_x86_64: ""
+# Optional uv aarch64 archive SHA-256; empty skips checksum verification.
+openhands_uv_checksum_aarch64: ""
 openhands_agent_canvas_version: "1.43.0"
-openhands_agent_canvas_checksum: >-
-  5830de4ec20a8d0da93e3b294e2940824b045034fba6c719692688bbdf9b5d743279896f8a486999001300320ba05a917d204f36e4213999d5f02b974b690788
+# Optional Agent Canvas npm archive SHA-512; empty skips checksum verification.
+openhands_agent_canvas_checksum: ""
+# Installs and verifies the pinned Node.js, uv/uvx, and Agent Canvas releases under /opt/openhands.
 openhands_install_prerequisites: true
+# Prepares the conversation image and renders, enables, starts, and health-checks the systemd service.
 openhands_manage_service: true
 
 # Service identity and Docker access.
 openhands_service_user: openhands
 openhands_service_group: openhands
+# Creates the service user and group and adds the user to the configured Docker access group.
 openhands_manage_service_identity: true
+# Grants the service access to Docker through systemd SupplementaryGroups and managed user membership.
 openhands_docker_group: docker
+# Command used for Docker preflight checks and conversation-image inspection and pulling.
 openhands_docker_executable: docker
+# Runs `docker --version` and `docker info` before making managed-host changes.
 openhands_docker_preflight_enabled: true
 
 # Listener and authentication.
+# Rendered as Agent Canvas `OH_BIND_HOST`; non-loopback values require public mode.
 openhands_bind_host: "127.0.0.1"
+# Rendered as Agent Canvas `PORT`.
 openhands_port: 8000
+# Adds `--public`; false restricts binding to loopback, while true requires a 32+ character API key.
 openhands_public: false
+# Rendered as `LOCAL_BACKEND_API_KEY` and required only when public mode is enabled.
 openhands_backend_api_key: ""
+# Number of local HTTP attempts Ansible makes after starting or restarting Agent Canvas.
 openhands_health_retries: 12
+# Seconds Ansible waits between local Agent Canvas health-check attempts.
 openhands_health_delay: 5
 
 # Persistent state.
+# Used as the service working directory and HOME, and as the managed service user's home path.
 openhands_data_dir: /var/lib/openhands
+# Rendered as `VITE_WORKING_DIR`; conversation workspaces below it are bind-mounted into containers.
 openhands_workspace_dir: /srv/openhands/workspaces
 
 # Docker conversation runtime.
+# Rendered as `OH_CONVERSATION_IMAGE` and pulled and architecture-checked when service management is enabled.
 openhands_conversation_image: ghcr.io/openhands/agent-server:rel-1.62.0-golang
+# Optional manifest digest appended as `<image>@<digest>`; unlike download checksums, this may be empty.
 openhands_conversation_image_digest: ""
+# Rendered as `OH_CONVERSATION_CONTAINER_MEMORY`, limiting each conversation container.
 openhands_conversation_memory: 4g
+# Rendered as `OH_CONVERSATION_CONTAINER_CPUS`, limiting each conversation container.
 openhands_conversation_cpus: "2.0"
+# Rendered as `OH_CONVERSATION_CONTAINER_PIDS_LIMIT`, limiting each conversation container.
 openhands_conversation_pids_limit: 512
+# Rendered as `OH_CONVERSATION_CONTAINER_STARTUP_TIMEOUT` in seconds.
 openhands_conversation_startup_timeout: 120
+# Rendered as `OH_CONVERSATION_IDLE_TTL_SECONDS`; controls when idle conversation containers are stopped.
 openhands_conversation_idle_ttl_seconds: 1200
 
-# Escape hatch for settings not yet modeled by a dedicated variable.
+# Appended to the Agent Canvas environment file; names managed above and other reserved names are rejected.
 openhands_extra_environment: {}

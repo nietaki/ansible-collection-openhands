@@ -1,0 +1,11 @@
+---
+- name: Exercise an invalid OpenHands checksum
+  hosts: all
+  gather_facts: false
+  vars:
+    openhands_node_checksum_x86_64: not-a-sha256
+    openhands_docker_preflight_enabled: false
+  tasks:
+    - name: Include the role with an invalid checksum  # noqa role-name[path]
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."

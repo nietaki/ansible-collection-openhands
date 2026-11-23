@@ -5,11 +5,21 @@
       - openhands_node_version is match('^[0-9]+\.[0-9]+\.[0-9]+$')
       - openhands_uv_version is match('^[0-9]+\.[0-9]+\.[0-9]+$')
       - openhands_agent_canvas_version is match('^[0-9]+\.[0-9]+\.[0-9]+$')
-      - openhands_node_checksum_x86_64 is match('^[0-9a-f]{64}$')
-      - openhands_node_checksum_aarch64 is match('^[0-9a-f]{64}$')
-      - openhands_uv_checksum_x86_64 is match('^[0-9a-f]{64}$')
-      - openhands_uv_checksum_aarch64 is match('^[0-9a-f]{64}$')
-      - openhands_agent_canvas_checksum is match('^[0-9a-f]{128}$')
+      - >-
+          openhands_node_checksum_x86_64 == '' or
+          openhands_node_checksum_x86_64 is match('^[0-9a-f]{64}$')
+      - >-
+          openhands_node_checksum_aarch64 == '' or
+          openhands_node_checksum_aarch64 is match('^[0-9a-f]{64}$')
+      - >-
+          openhands_uv_checksum_x86_64 == '' or
+          openhands_uv_checksum_x86_64 is match('^[0-9a-f]{64}$')
+      - >-
+          openhands_uv_checksum_aarch64 == '' or
+          openhands_uv_checksum_aarch64 is match('^[0-9a-f]{64}$')
+      - >-
+          openhands_agent_canvas_checksum == '' or
+          openhands_agent_canvas_checksum is match('^[0-9a-f]{128}$')
       - openhands_service_user is match('^[a-z_][a-z0-9_-]*[$]?$')
       - openhands_service_group is match('^[a-z_][a-z0-9_-]*[$]?$')
       - openhands_docker_group is match('^[a-z_][a-z0-9_-]*[$]?$')
@@ -58,9 +68,10 @@
           'VITE_WORKING_DIR'
         ]) | list | length) == 0
     fail_msg: >-
-      OpenHands configuration is invalid. Check versions, absolute paths,
-      listener settings, public-mode authentication, image and digest syntax,
-      resource limits, environment variable names, and reserved variables.
+      OpenHands configuration is invalid. Check versions, optional checksum
+      syntax, absolute paths, listener settings, public-mode authentication,
+      image and digest syntax, resource limits, environment variable names,
+      and reserved variables.
 
 - name: Validate extra environment variable names
   ansible.builtin.assert:

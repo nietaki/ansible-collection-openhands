@@ -36,9 +36,70 @@ The role defaults to explicit versions rather than following floating releases:
 | OpenHands Agent Canvas | `1.43.0` |
 | Conversation image | `ghcr.io/openhands/agent-server:rel-1.62.0-golang` |
 
-Node.js and uv have architecture-specific SHA-256 checksum variables. Agent
-Canvas has a SHA-512 checksum for its npm archive. When changing a version,
-update all corresponding checksums in the same reviewed change.
+Node.js and uv have optional architecture-specific SHA-256 checksum variables.
+Agent Canvas has an optional SHA-512 checksum for its npm archive. All five
+default to empty, so prerequisite downloads use their exact versioned URLs
+without digest verification. A non-empty checksum enables verification for that
+artifact and must use the expected lowercase hexadecimal format.
+
+The role verifies the installed executable versions after installation, but a
+version check is not a substitute for cryptographic content verification. Set
+checksums when deployment policy requires downloaded content to be pinned.
+
+### Obtaining prerequisite checksums
+
+Checksums for a configured version are available from these upstream artifacts:
+
+- Node.js publishes `SHASUMS256.txt` in each
+  [release directory](https://nodejs.org/download/release/). Use the
+  `linux-x64.tar.gz` value for `openhands_node_checksum_x86_64` and the
+  `linux-arm64.tar.gz` value for `openhands_node_checksum_aarch64`.
+- uv publishes a `.sha256` sidecar for every archive on its
+  [GitHub release](https://github.com/astral-sh/uv/releases) page. The role uses
+  the `x86_64-unknown-linux-gnu` and `aarch64-unknown-linux-gnu` archives.
+- Agent Canvas publishes its versioned npm archive through the
+  [npm registry](https://www.npmjs.com/package/@openhands/agent-canvas). Hash
+  that exact archive with SHA-512 for `openhands_agent_canvas_checksum`.
+
+The following copy-pasteable commands print the five checksum assignments in
+role-variable format. Set the three versions first:
+
+```sh
+NODE_VERSION=24.11.1
+UV_VERSION=0.9.30
+AGENT_CANVAS_VERSION=1.43.0
+
+NODE_SHASUMS="$(
+  curl -fsSL \
+    "https://nodejs.org/download/release/v${NODE_VERSION}/SHASUMS256.txt"
+)"
+printf '%s\n' "$NODE_SHASUMS" | awk \
+  -v file="node-v${NODE_VERSION}-linux-x64.tar.gz" \
+  '$2 == file { print "openhands_node_checksum_x86_64: " $1 }'
+printf '%s\n' "$NODE_SHASUMS" | awk \
+  -v file="node-v${NODE_VERSION}-linux-arm64.tar.gz" \
+  '$2 == file { print "openhands_node_checksum_aarch64: " $1 }'
+
+for arch in x86_64 aarch64; do
+  printf 'openhands_uv_checksum_%s: ' "$arch"
+  curl -fsSL \
+    "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-${arch}-unknown-linux-gnu.tar.gz.sha256" \
+    | awk '{ print $1 }'
+done
+
+printf 'openhands_agent_canvas_checksum: '
+curl -fsSL \
+  "https://registry.npmjs.org/@openhands/agent-canvas/-/agent-canvas-${AGENT_CANVAS_VERSION}.tgz" \
+  | python3 -c \
+    'import hashlib, sys; print(hashlib.sha512(sys.stdin.buffer.read()).hexdigest())'
+```
+
+Review that all five commands produced non-empty hexadecimal values before
+copying them into inventory, group variables, or another deployment-specific
+configuration source. You may configure only the architectures you deploy;
+an empty checksum skips verification on that architecture. The filenames and
+algorithms must continue to match the download URLs in `vars/main.yml` and
+`tasks/prerequisites.yml` if the installation layout changes.
 
 The role installs managed prerequisites below `/opt/openhands` and exposes
 stable internal paths:
@@ -298,7 +359,7 @@ secret handling.
 `meta/argument_specs.yml` validates variable types. `tasks/main.yml` performs
 cross-variable and format checks before managed-host mutation, including:
 
-- semantic version formats and checksum lengths;
+- semantic version formats and optional checksum syntax and lengths;
 - Unix user and group names;
 - listener and public-mode authentication relationships;
 - absolute persistence paths;
@@ -313,8 +374,9 @@ the persistence scenario in CI.
 ## Upgrades
 
 Application versions are configuration, not floating dependencies. Upgrade them
-through a reviewed change that updates versions and checksums together, then run
-native integration before deployment.
+through a reviewed change and run native integration before deployment. If your
+deployment configures checksums, update each checksum with its version or clear
+it explicitly to use version-only installation.
 
 The repository does not yet claim automated previous-release migration
 coverage because no released and production-exercised baseline exists. The

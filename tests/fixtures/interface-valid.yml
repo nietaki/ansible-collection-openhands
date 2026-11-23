@@ -7,6 +7,15 @@
       ansible.builtin.command: id -gn
       register: interface_primary_group
       changed_when: false
+
+    - name: Normalize the controller architecture to a supported role architecture
+      ansible.builtin.set_fact:
+        ansible_facts: >-
+          {{ ansible_facts | combine({
+            'architecture': 'aarch64'
+            if ansible_facts['architecture'] == 'arm64'
+            else ansible_facts['architecture']
+          }) }}
   vars:
     openhands_manage_service_identity: false
     openhands_install_prerequisites: false
@@ -21,3 +30,19 @@
     - name: Include the role with Docker preflight enabled  # noqa role-name[path]
       ansible.builtin.include_role:
         name: "{{ playbook_dir }}/../.."
+        public: true
+
+    - name: Verify checksum verification is disabled by default
+      ansible.builtin.assert:
+        that:
+          - openhands_node_checksum_x86_64 == ''
+          - openhands_node_checksum_aarch64 == ''
+          - openhands_uv_checksum_x86_64 == ''
+          - openhands_uv_checksum_aarch64 == ''
+          - openhands_agent_canvas_checksum == ''
+
+    - name: Verify uv artifacts are scoped to the configured version
+      ansible.builtin.assert:
+        that:
+          - openhands_uv_version in openhands_uv_archive_path
+          - openhands_uv_version in openhands_uv_release_dir

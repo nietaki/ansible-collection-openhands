@@ -147,6 +147,11 @@ At a high level it verifies:
 11. conversation deletion and cleanup;
 12. idempotence of an unchanged second convergence.
 
+The persistence scenario explicitly supplies all five prerequisite checksums so
+CI exercises the opt-in verification path. Portable interface tests separately
+assert that the public checksum defaults are empty and malformed non-empty
+values are rejected.
+
 `molecule/persistence/verify.yml` contains the assertions and lifecycle API
 calls. `molecule/persistence/cleanup.yml` captures diagnostics before removing
 the service, containers, files, prerequisites, and service identity.

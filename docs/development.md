@@ -72,7 +72,8 @@ Node.js, uv, Agent Canvas, and the Agent Server image are intentionally pinned.
 A dependency update should include:
 
 - the exact new version or image tag;
-- architecture-specific checksums where applicable;
+- confirmation that the documented optional-checksum commands still match the
+  upstream artifacts;
 - evidence that the selected image contains the required runtime tools;
 - updated documentation;
 - successful portable checks and native amd64/arm64 integration.

@@ -12,27 +12,32 @@ argument_specs:
         description: Exact Node.js release to install.
       openhands_node_checksum_x86_64:
         type: str
-        description: SHA-256 checksum for the x86_64 Node.js archive.
+        default: ""
+        description: Optional SHA-256 for the x86_64 Node.js archive; empty disables verification.
       openhands_node_checksum_aarch64:
         type: str
-        description: SHA-256 checksum for the aarch64 Node.js archive.
+        default: ""
+        description: Optional SHA-256 for the aarch64 Node.js archive; empty disables verification.
       openhands_uv_version:
         type: str
         default: "0.9.30"
         description: Exact uv release to install.
       openhands_uv_checksum_x86_64:
         type: str
-        description: SHA-256 checksum for the x86_64 uv archive.
+        default: ""
+        description: Optional SHA-256 for the x86_64 uv archive; empty disables verification.
       openhands_uv_checksum_aarch64:
         type: str
-        description: SHA-256 checksum for the aarch64 uv archive.
+        default: ""
+        description: Optional SHA-256 for the aarch64 uv archive; empty disables verification.
       openhands_agent_canvas_version:
         type: str
         default: "1.43.0"
         description: Exact Agent Canvas npm package version to install.
       openhands_agent_canvas_checksum:
         type: str
-        description: SHA-512 checksum for the Agent Canvas npm archive.
+        default: ""
+        description: Optional SHA-512 for the Agent Canvas npm archive; empty disables verification.
       openhands_install_prerequisites:
         type: bool
         default: true

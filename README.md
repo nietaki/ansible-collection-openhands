@@ -36,8 +36,10 @@ The role uses reviewed, explicit versions:
 | Agent Canvas | `1.43.0` |
 | Agent Server image | `rel-1.62.0-golang` |
 
-Downloads are checksum-verified where upstream artifacts provide checksums. The
-conversation image is verified on both native supported architectures.
+Prerequisite downloads use exact versioned URLs by default. Optional SHA-256
+and SHA-512 variables enable checksum verification when deployment policy
+requires content pinning. The conversation image is verified on both native
+supported architectures.
 
 ## Example
 

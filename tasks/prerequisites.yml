@@ -15,7 +15,12 @@
   ansible.builtin.get_url:
     url: "{{ openhands_node_archive_url }}"
     dest: "{{ openhands_download_dir }}/{{ openhands_node_archive_name }}"
-    checksum: "sha256:{{ openhands_node_checksum }}"
+    checksum: >-
+      {{
+        ('sha256:' ~ openhands_node_checksum)
+        if (openhands_node_checksum | length > 0)
+        else omit
+      }}
     owner: root
     group: root
     mode: "0644"
@@ -38,18 +43,33 @@
 - name: Download the pinned uv archive
   ansible.builtin.get_url:
     url: "{{ openhands_uv_archive_url }}"
-    dest: "{{ openhands_download_dir }}/{{ openhands_uv_archive_name }}"
-    checksum: "sha256:{{ openhands_uv_checksum }}"
+    dest: "{{ openhands_uv_archive_path }}"
+    checksum: >-
+      {{
+        ('sha256:' ~ openhands_uv_checksum)
+        if (openhands_uv_checksum | length > 0)
+        else omit
+      }}
     owner: root
     group: root
     mode: "0644"
 
+- name: Create the versioned uv release directory
+  ansible.builtin.file:
+    path: "{{ openhands_uv_release_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Extract the pinned uv archive
   ansible.builtin.unarchive:
-    src: "{{ openhands_download_dir }}/{{ openhands_uv_archive_name }}"
-    dest: "{{ openhands_install_prefix }}"
+    src: "{{ openhands_uv_archive_path }}"
+    dest: "{{ openhands_uv_release_dir }}"
     remote_src: true
-    creates: "{{ openhands_uv_release_dir }}"
+    extra_opts:
+      - --strip-components=1
+    creates: "{{ openhands_uv_release_dir }}/uv"
 
 - name: Inspect the stable uv path
   ansible.builtin.stat:
@@ -91,7 +111,12 @@
   ansible.builtin.get_url:
     url: "{{ openhands_agent_canvas_archive_url }}"
     dest: "{{ openhands_agent_canvas_archive_path }}"
-    checksum: "sha512:{{ openhands_agent_canvas_checksum }}"
+    checksum: >-
+      {{
+        ('sha512:' ~ openhands_agent_canvas_checksum)
+        if (openhands_agent_canvas_checksum | length > 0)
+        else omit
+      }}
     owner: root
     group: root
     mode: "0644"

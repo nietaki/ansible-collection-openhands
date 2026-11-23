@@ -19,10 +19,14 @@ openhands_node_checksums:
 openhands_node_checksum: "{{ openhands_node_checksums[ansible_facts['architecture']] }}"
 openhands_node_bin: "{{ openhands_install_prefix }}/node/bin/node"
 openhands_npm_bin: "{{ openhands_install_prefix }}/node/bin/npm"
-openhands_uv_archive_name: >-
-  uv-{{ openhands_uv_architecture_suffix[ansible_facts['architecture']] }}.tar.gz
-openhands_uv_release_dir: >-
-  {{ openhands_install_prefix }}/uv-{{ openhands_uv_architecture_suffix[ansible_facts['architecture']] }}
+openhands_uv_distribution_name: >-
+  uv-{{ openhands_uv_architecture_suffix[ansible_facts['architecture']] }}
+openhands_uv_archive_name: "{{ openhands_uv_distribution_name }}.tar.gz"
+openhands_uv_release_name: >-
+  uv-{{ openhands_uv_version }}-{{ openhands_uv_architecture_suffix[ansible_facts['architecture']] }}
+openhands_uv_archive_path: >-
+  {{ openhands_download_dir }}/{{ openhands_uv_release_name }}.tar.gz
+openhands_uv_release_dir: "{{ openhands_install_prefix }}/{{ openhands_uv_release_name }}"
 openhands_uv_archive_url: >-
   https://github.com/astral-sh/uv/releases/download/{{ openhands_uv_version }}/{{ openhands_uv_archive_name }}
 openhands_uv_checksums:
