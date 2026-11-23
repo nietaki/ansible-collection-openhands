@@ -45,6 +45,10 @@ Important paths include:
 | `tests/contract/` | Portable interface and policy tests |
 | `tests/fixtures/` | Small Ansible playbooks used by tests and CI |
 | `.github/workflows/ci.yml` | Quality, compatibility, and native CI jobs |
+| `AGENTS.md` | Changelog guidance and operator-only release ownership |
+| `CHANGELOG.md` | Notable changes following Keep a Changelog |
+| `ROLE_VERSION.txt` | Last released role version |
+| `scripts/release.sh` | Guarded role release script used by Make |
 | `docs/` | Detailed operator and developer documentation |
 | `notes/implementation-plan.md` | Living design history and deferred work |
 
@@ -83,6 +87,27 @@ A dependency update should include:
 Do not assume that an upstream image suffix proves its contents. The current
 Agent Server default uses `rel-1.62.0-golang` because upstream's final
 `1.62.0-golang` tag was built from the wrong base image.
+
+## Releases
+
+Releases are performed only by the repository operator, not by agents.
+`ROLE_VERSION.txt` contains the last released role version. From a clean local
+`master` that matches `origin/master`, select the appropriate semantic version
+bump:
+
+```console
+make release-patch
+make release-minor
+make release-major
+```
+
+Record notable work under `## [Unreleased]` in `CHANGELOG.md`. The release
+script runs `make check`, displays the proposed version and local release date,
+and asks for confirmation. Enter `y` to update `ROLE_VERSION.txt`, place the
+Unreleased changelog entries under `## [X.Y.Z] - YYYY-MM-DD`, create a commit
+named `Release X.Y.Z`, create the lightweight `X.Y.Z` tag, and atomically push
+the commit and tag to `origin`. The release aborts if the target tag already
+exists locally or on the remote; existing tags are never moved.
 
 ## CI and diagnostics
 

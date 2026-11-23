@@ -1,7 +1,8 @@
 UV ?= uv
 
 .PHONY: install lint lint-yaml test molecule molecule-persistence \
-	molecule-persistence-version-only molecule-persistence-verified check
+	molecule-persistence-version-only molecule-persistence-verified check \
+	release-patch release-minor release-major
 
 install:
 	$(UV) sync --locked
@@ -28,3 +29,12 @@ molecule-persistence-verified:
 	OPENHANDS_CHECKSUM_MODE=verified $(UV) run molecule test -s persistence
 
 check: lint test molecule
+
+release-patch:
+	./scripts/release.sh patch
+
+release-minor:
+	./scripts/release.sh minor
+
+release-major:
+	./scripts/release.sh major

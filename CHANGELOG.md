@@ -1,0 +1,42 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Initial `nietaki.openhands` Ansible role for deploying OpenHands Agent Canvas
+  as a native systemd service with Dockerized conversation environments.
+- Strict validation for the role's public variables, cross-variable constraints,
+  filesystem paths, Unix identities, listener configuration, image references,
+  resource limits, checksums, and extra environment variable names.
+- Optional Docker executable and daemon-access preflight checks before managed
+  host changes begin.
+- Optional installation of pinned Node.js, uv, uvx, and Agent Canvas releases,
+  including architecture selection and optional SHA-256 or SHA-512 verification.
+- Optional management of the OpenHands service user and group, including access
+  to the configured Docker group.
+- Managed persistent data and host workspace directories with restricted
+  ownership and permissions.
+- Conversation image inspection, conditional pulling, architecture validation,
+  and optional manifest-digest pinning.
+- Configurable Docker conversation policy, including memory, CPU, PID, startup
+  timeout, idle-container TTL, and workspace controls.
+- Restricted Agent Canvas environment and systemd unit management with service
+  enablement, restart handling, version verification, and health polling.
+- Safe private-listener defaults and explicit safeguards for non-loopback public
+  mode, including a required backend API key.
+- Configuration, deployment, upgrade, security, testing, and development
+  documentation with an example playbook.
+- Portable contract tests, delegated Molecule convergence and idempotence tests,
+  and native persistence scenarios for version-only and checksum-verified modes.
+- CI coverage for supported Ansible versions and native amd64 and arm64 Ubuntu
+  deployments, including secret-safe failure diagnostics.
+- Guarded semantic-version release targets that run the full project checks and
+  atomically push the release commit and lightweight tag.
+- Repository agent guidance for changelog maintenance and operator-only release
+  ownership.
