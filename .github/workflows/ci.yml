@@ -92,15 +92,23 @@ jobs:
           molecule test -s default
 
   native-integration:
-    name: Native ${{ matrix.architecture }} integration
+    name: Native ${{ matrix.architecture }} ${{ matrix.checksum_mode }} integration
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - architecture: amd64
+            checksum_mode: version-only
+            runner: ubuntu-26.04
+          - architecture: amd64
+            checksum_mode: verified
             runner: ubuntu-26.04
           - architecture: arm64
+            checksum_mode: version-only
+            runner: ubuntu-26.04-arm
+          - architecture: arm64
+            checksum_mode: verified
             runner: ubuntu-26.04-arm
     steps:
       - name: Check out the repository
@@ -116,9 +124,12 @@ jobs:
         run: uv sync --locked
 
       - name: Run the delegated role scenario
+        if: matrix.checksum_mode == 'version-only'
         run: uv run molecule test -s default
 
       - name: Run the persistence integration scenario
+        env:
+          OPENHANDS_CHECKSUM_MODE: ${{ matrix.checksum_mode }}
         run: uv run molecule test -s persistence
 
       - name: Display the OpenHands journal after failure
@@ -129,7 +140,15 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
-          name: openhands-diagnostics-${{ matrix.architecture }}-attempt-${{ github.run_attempt }}
+          name: >-
+            ${{
+              format(
+                'openhands-diagnostics-{0}-{1}-attempt-{2}',
+                matrix.architecture,
+                matrix.checksum_mode,
+                github.run_attempt
+              )
+            }}
           path: /tmp/openhands-ci-diagnostics/
           if-no-files-found: warn
           retention-days: 7

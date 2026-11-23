@@ -16,11 +16,13 @@ uv sync --locked
 Use the Makefile as the local command interface:
 
 ```console
-make lint                   # yamllint and ansible-lint
-make test                   # portable Python contract tests
-make molecule               # safe local Molecule scenario
-make check                  # lint, contract tests, and local Molecule
-make molecule-persistence   # privileged native integration scenario
+make lint                                # yamllint and ansible-lint
+make test                                # portable Python contract tests
+make molecule                            # safe local Molecule scenario
+make check                               # lint, contract tests, and local Molecule
+make molecule-persistence                # version-only persistence alias
+make molecule-persistence-version-only   # persistence without download checksums
+make molecule-persistence-verified       # persistence with download checksums
 ```
 
 See [`testing.md`](testing.md) for the purpose, prerequisites, and related files

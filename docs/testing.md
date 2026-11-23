@@ -21,16 +21,20 @@ make check
 is designed to be safe on developer workstations, including macOS. It does not
 install OpenHands, create a service account, manage systemd, or require Docker.
 
-The full persistence scenario is separate:
+The full persistence scenario is separate and has explicit checksum modes:
 
 ```console
-make molecule-persistence
+make molecule-persistence-version-only
+make molecule-persistence-verified
 ```
 
-It is intended for a disposable Ubuntu 26.04 host with passwordless privilege
-escalation, systemd, and a working Docker installation. It should not be run on
-a normal workstation without first reviewing the scenario and its cleanup
-playbook.
+`make molecule-persistence` remains a convenience alias for the version-only
+mode, matching the role defaults.
+
+The scenario is intended for a disposable Ubuntu 26.04 host with passwordless
+privilege escalation, systemd, and a working Docker installation. It should
+not be run on a normal workstation without first reviewing the scenario and
+its cleanup playbook.
 
 ## Test layers
 
@@ -41,8 +45,9 @@ playbook.
 | Contract tests | `make test` | Public interface, validation, templates, and failure paths | Any development host |
 | Default Molecule scenario | `make molecule` | Safe role loading, convergence, and idempotence | Any development host |
 | Ansible compatibility | CI only | Syntax and safe convergence across supported Ansible versions | Ubuntu amd64 |
-| Persistence scenario | `make molecule-persistence` | Real installation, systemd, Docker, and conversation lifecycle | Disposable Ubuntu host |
-| Native architecture matrix | CI only | The persistence scenario on native amd64 and arm64 | GitHub-hosted Ubuntu runners |
+| Version-only persistence | `make molecule-persistence-version-only` | Real installation without download checksums | Disposable Ubuntu host |
+| Verified persistence | `make molecule-persistence-verified` | Real installation with download checksums | Disposable Ubuntu host |
+| Native architecture matrix | CI only | Both checksum modes on native amd64 and arm64 | GitHub-hosted Ubuntu runners |
 
 ## Linting and static checks
 
@@ -134,8 +139,8 @@ verification, and cleanup.
 At a high level it verifies:
 
 1. creation of the dedicated service identity and persistence directories;
-2. checksum-verified installation of the pinned Node.js, uv, and Agent Canvas
-   releases;
+2. installation of the pinned Node.js, uv, and Agent Canvas releases, either
+   with checksum verification or using versioned URLs only;
 3. rendering and validation of the environment file and systemd unit;
 4. service enablement, startup, version output, and HTTP health;
 5. Docker access through the service account;
@@ -147,10 +152,10 @@ At a high level it verifies:
 11. conversation deletion and cleanup;
 12. idempotence of an unchanged second convergence.
 
-The persistence scenario explicitly supplies all five prerequisite checksums so
-CI exercises the opt-in verification path. Portable interface tests separately
-assert that the public checksum defaults are empty and malformed non-empty
-values are rejected.
+`OPENHANDS_CHECKSUM_MODE` selects `version-only` or `verified`. The Makefile
+targets set it explicitly, and the scenario rejects any other value. Portable
+interface tests separately assert that the public checksum defaults are empty
+and malformed non-empty values are rejected.
 
 `molecule/persistence/verify.yml` contains the assertions and lifecycle API
 calls. `molecule/persistence/cleanup.yml` captures diagnostics before removing
@@ -175,17 +180,20 @@ scenario.
 
 ## Native architecture CI
 
-The `native-integration` job runs on GitHub-hosted native runners:
+The `native-integration` job runs four entries on GitHub-hosted native runners:
 
-| Runner | Architecture |
-| --- | --- |
-| `ubuntu-26.04` | amd64 |
-| `ubuntu-26.04-arm` | arm64 |
+| Runner | Architecture | Checksum mode |
+| --- | --- | --- |
+| `ubuntu-26.04` | amd64 | version-only |
+| `ubuntu-26.04` | amd64 | verified |
+| `ubuntu-26.04-arm` | arm64 | version-only |
+| `ubuntu-26.04-arm` | arm64 | verified |
 
-Both jobs run the default scenario followed by the complete persistence
-scenario. Native runners are important because the role installs different
-Node.js and uv artifacts and Docker resolves different conversation-image
-manifests for each architecture.
+Every entry runs the complete persistence scenario. The lightweight default
+scenario runs only in the version-only entries, preserving one native run per
+architecture without duplicating it for checksum mode. Native runners are
+important because the role installs different Node.js and uv artifacts and
+Docker resolves different conversation-image manifests for each architecture.
 
 The workflow is defined in `.github/workflows/ci.yml`. Third-party actions are
 pinned by commit SHA and workflow permissions are read-only.
@@ -198,9 +206,10 @@ The persistence cleanup playbook writes a secret-safe diagnostic bundle to:
 /tmp/openhands-ci-diagnostics/
 ```
 
-CI uploads one artifact per architecture for seven days, even when the scenario
-fails. The bundle includes systemd status and selected properties, the service
-journal, listening ports, process information, service identity, Docker access,
+CI uploads one artifact per architecture and checksum mode for seven days, even
+when the scenario fails. The bundle includes systemd status and selected
+properties, the service journal, listening ports, process information, service
+identity, Docker access,
 conversation-container state, installed stack information, and relevant path
 metadata.
 
