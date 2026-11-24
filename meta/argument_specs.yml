@@ -103,6 +103,18 @@ argument_specs:
         type: str
         default: /srv/openhands/workspaces
         description: Root directory for conversation workspaces.
+      openhands_backup_enabled:
+        type: bool
+        default: false
+        description: Create a private persistence checkpoint before upgrading an existing installation.
+      openhands_backup_dir:
+        type: str
+        default: /var/backups/openhands
+        description: Root-only directory in which pre-upgrade checkpoints are stored.
+      openhands_backup_include_workspaces:
+        type: bool
+        default: true
+        description: Include the configured workspace directory in pre-upgrade checkpoints.
       openhands_conversation_image:
         type: str
         default: ghcr.io/openhands/agent-server:rel-1.62.0-golang

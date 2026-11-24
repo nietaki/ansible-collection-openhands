@@ -1,0 +1,13 @@
+---
+- name: Reject a backup path inside persistent state
+  hosts: all
+  gather_facts: false
+  vars:
+    openhands_docker_preflight_enabled: false
+    openhands_backup_enabled: true
+    openhands_data_dir: /tmp/openhands-interface/data
+    openhands_backup_dir: /tmp/openhands-interface/data/backups
+  tasks:
+    - name: Include the role with an invalid backup path  # noqa role-name[path]
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."

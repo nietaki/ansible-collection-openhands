@@ -59,6 +59,13 @@ class InterfaceContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("OpenHands configuration is invalid", output)
 
+    def test_backup_directory_inside_persistence_root_fails(self) -> None:
+        result = self.run_fixture("interface-invalid-backup.yml")
+        output = f"{result.stdout}\n{result.stderr}"
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Backup settings are invalid", output)
+
     def test_invalid_health_configuration_fails(self) -> None:
         result = self.run_fixture("interface-invalid-health.yml")
         output = f"{result.stdout}\n{result.stderr}"
