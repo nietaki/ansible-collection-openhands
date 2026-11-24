@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backup and restore documentation covering persistent state locations,
   expected directory structure, SQLite consistency, encryption keys, and
   workspace data.
+- A pre-upgrade backup feature design documenting the agreed reduced scope,
+  consistency requirements, container shutdown behavior, manual restore
+  contract, and deferred improvements.
 
 ## [0.1.0] - 2026-11-23
 
