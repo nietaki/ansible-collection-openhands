@@ -189,6 +189,8 @@ See [`examples/main.yml`](examples/main.yml) for the repository example.
 
 - [`docs/configuration.md`](docs/configuration.md) — supported deployment,
   variables, security implications, paths, images, resources, and upgrades.
+- [`docs/backups.md`](docs/backups.md) — persistent data layout, backup scope,
+  consistency, and restore considerations.
 - [`docs/testing.md`](docs/testing.md) — test layers, commands, CI jobs,
   scenarios, diagnostics, and guidance for adding coverage.
 - [`docs/development.md`](docs/development.md) — development environment and
