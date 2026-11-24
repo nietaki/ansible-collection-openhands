@@ -12,9 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backup and restore documentation covering persistent state locations,
   expected directory structure, SQLite consistency, encryption keys, and
   workspace data.
+- Optional root-only pre-upgrade persistence checkpoints with SHA-256 sidecars,
+  explicit conversation-container quiescence, and manual rollback instructions.
+- Automated pre-upgrade detection and archive-content tests for upgrade decisions,
+  checksums, permissions, and workspace inclusion.
 - A pre-upgrade backup feature design documenting the agreed reduced scope,
   consistency requirements, container shutdown behavior, manual restore
   contract, and deferred improvements.
+
+### Changed
+
+- Enabled pre-upgrade checkpoints by default and excluded workspaces by default;
+  operators can disable checkpoints or opt in to workspace inclusion.
 
 ## [0.1.0] - 2026-11-23
 

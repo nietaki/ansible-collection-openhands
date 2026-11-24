@@ -73,6 +73,25 @@
       image and digest syntax, resource limits, environment variable names,
       and reserved variables.
 
+- name: Validate backup configuration
+  ansible.builtin.assert:
+    that:
+      - openhands_backup_enabled is boolean
+      - openhands_backup_include_workspaces is boolean
+      - openhands_backup_dir is match('^/')
+      - openhands_backup_dir != '/'
+      - "'..' not in openhands_backup_dir.split('/')"
+      - openhands_backup_dir.rstrip('/') != openhands_data_dir.rstrip('/')
+      - not openhands_backup_dir.rstrip('/').startswith(openhands_data_dir.rstrip('/') ~ '/')
+      - not openhands_data_dir.rstrip('/').startswith(openhands_backup_dir.rstrip('/') ~ '/')
+      - openhands_backup_dir.rstrip('/') != openhands_workspace_dir.rstrip('/')
+      - not openhands_backup_dir.rstrip('/').startswith(openhands_workspace_dir.rstrip('/') ~ '/')
+      - not openhands_workspace_dir.rstrip('/').startswith(openhands_backup_dir.rstrip('/') ~ '/')
+    fail_msg: >-
+      Backup settings are invalid. The backup directory must be an absolute,
+      non-root path outside both persistence roots, and backup switches must be booleans.
+  when: openhands_backup_enabled
+
 - name: Validate extra environment variable names
   ansible.builtin.assert:
     that:
@@ -114,6 +133,10 @@
   check_mode: false
   when: openhands_docker_preflight_enabled
   failed_when: openhands_docker_info_check.rc != 0
+
+- name: Inspect and checkpoint an existing installation before mutation
+  ansible.builtin.include_tasks: pre-upgrade-backup.yml
+  when: openhands_backup_enabled
 
 - name: Create the OpenHands service group
   ansible.builtin.group:

@@ -267,6 +267,97 @@ conversation must be restored with the exact workspace state it referenced.
 Validate that the snapshot mechanism gives SQLite a consistent view, or briefly
 stop the service around the snapshot.
 
+## Automatic pre-upgrade checkpoints
+
+The role creates a local checkpoint before changing the Agent Canvas version
+of an existing installation by default. Disable it only when that risk is
+acceptable:
+
+```yaml
+openhands_backup_enabled: true
+openhands_backup_dir: /var/backups/openhands
+openhands_backup_include_workspaces: false
+```
+
+When enabled, the role compares the installed Agent Canvas `--version` with
+`openhands_agent_canvas_version` before changing managed files. It checkpoints
+when the data directory already exists and the installed version is different
+or cannot be determined. Fresh installations and same-version runs do not
+create archives. This initial detector does not detect conversation-image-only
+changes or migration of configured persistence paths.
+
+Before reading persistence, the role stops `openhands.service`, explicitly
+stops any remaining running conversation containers carrying the OpenHands
+runtime-owner label and expected name prefix, and waits for them to stop. If
+quiescence or archive creation fails, the role attempts to restart the service
+if it was running and aborts before application changes.
+
+Archives and SHA-256 sidecars are written as root-owned mode `0600` files in a
+root-owned mode `0700` directory. Archive members are paths relative to `/`.
+The archive contains the complete data directory. Workspaces are excluded by
+default; set `openhands_backup_include_workspaces: true` to include them. Without
+them, the checkpoint does not capture workspace files and is not a complete
+rollback point. Backups are not pruned automatically, so monitor free space and
+remove old archives according to your retention policy. The archive remains on
+the same host and is not a disaster-recovery backup.
+
+The configured backup directory must be an absolute, non-root path outside
+both persistence roots. Do not place it on a path writable by the service user.
+The archives can contain credentials, encryption keys, transcripts, and source
+code.
+
+Inspect and verify an archive with standard system tools:
+
+```console
+sudo sha256sum -c /var/backups/openhands/openhands-*.tar.gz.sha256
+sudo gzip -t /var/backups/openhands/openhands-<checkpoint>.tar.gz
+sudo tar -tzf /var/backups/openhands/openhands-<checkpoint>.tar.gz
+```
+
+### Manual rollback from a pre-upgrade checkpoint
+
+A checkpoint must be restored together with the old software configuration.
+Select the inventory/variable revision and secrets that configured the
+checkpoint's Agent Canvas and conversation image versions. Do not start the
+newer application with restored old data. The role does not perform this
+procedure automatically:
+
+1. Inspect the selected archive and verify its checksum as above.
+2. Stop the service and remaining matching conversation containers:
+
+   ```console
+   sudo systemctl stop openhands.service
+   sudo docker ps -q --filter label=ai.openhands.runtime-owner \\
+     --filter name=agent-server-conversation- | xargs -r sudo docker stop
+   ```
+
+3. Move the current configured data and workspace roots aside to unique,
+   timestamped recovery names. For example, with the default paths:
+
+   ```console
+   sudo mv /var/lib/openhands /var/lib/openhands.recovery-<timestamp>
+   sudo mv /srv/openhands/workspaces /srv/openhands/workspaces.recovery-<timestamp>
+   ```
+
+   If workspaces were excluded, move the current workspace aside only when
+   replacing it is intended; otherwise preserve it separately.
+4. Extract the archive beneath `/`, replacing the archived roots rather than
+   overlaying them on newer contents:
+
+   ```console
+   sudo tar -C / -xzf /var/backups/openhands/openhands-<checkpoint>.tar.gz
+   ```
+
+5. Restore the old role variables and run the role to reinstall and start the
+   corresponding deployment.
+6. Check service status and logs, then verify settings, conversations,
+   automations, and representative workspace files. Keep the moved-aside roots
+   until restoration is confirmed.
+
+For non-default persistence roots, the archive member paths reflect those
+configured paths; restoration does not support extracting them to different
+paths or migrating persisted records.
+
 ## Restore considerations
 
 A restore should preserve:

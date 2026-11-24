@@ -2,12 +2,11 @@
 
 ## Status
 
-Design agreed; not yet implemented.
+Implemented; defaults revised after initial release of the feature.
 
-This document records the intended first implementation of optional backups
-created by the role before an OpenHands upgrade. It deliberately describes a
-small rollback-checkpoint feature rather than a complete backup or disaster
-recovery system.
+This document records the design of the role's pre-upgrade checkpoints. It
+intentionally describes a small rollback-checkpoint feature rather than a
+complete backup or disaster-recovery system.
 
 ## Purpose
 
@@ -25,10 +24,10 @@ off-host or use a dedicated backup system.
 
 The first implementation should:
 
-- be optional and disabled by default;
+- be enabled by default, with an explicit opt-out;
 - create a backup before an existing installation is upgraded;
 - back up the complete `openhands_data_dir`;
-- include `openhands_workspace_dir` by default, with one option to exclude it;
+- exclude `openhands_workspace_dir` by default, with one option to include it;
 - stop Agent Canvas and explicitly quiesce its Docker conversation containers
   before reading either persistence root;
 - create a private root-owned `tar.gz` archive in a configurable directory;
@@ -57,9 +56,9 @@ The initial implementation should not:
 The minimal public interface is expected to be similar to:
 
 ```yaml
-openhands_backup_enabled: false
+openhands_backup_enabled: true
 openhands_backup_dir: /var/backups/openhands
-openhands_backup_include_workspaces: true
+openhands_backup_include_workspaces: false
 ```
 
 The exact variable names remain subject to implementation review, but the
@@ -121,13 +120,12 @@ looks valid while omitting a newly introduced persistence file.
 
 ### Workspace directory
 
-`openhands_workspace_dir` should be included by default so that conversation
-records and the files they reference represent the same point in time.
-
-Operators may disable workspace inclusion when workspaces are very large or are
-already protected by another system. Such an archive is an application-state
-checkpoint, not a complete OpenHands rollback point. Documentation and archive
-naming or metadata should make that limitation visible.
+`openhands_workspace_dir` is excluded by default to limit archive size.
+Operators may include it by setting `openhands_backup_include_workspaces: true`
+so that conversation records and the files they reference represent the same
+point in time. When omitted, an archive is an application-state checkpoint,
+not a complete OpenHands rollback point. Documentation must make this
+limitation clear.
 
 ### Excluded paths
 

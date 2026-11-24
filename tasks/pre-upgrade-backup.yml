@@ -1,0 +1,228 @@
+---
+- name: Inspect the existing Agent Canvas executable
+  ansible.builtin.stat:
+    path: "{{ openhands_agent_canvas_bin }}"
+  register: openhands_backup_canvas_binary
+
+- name: Inspect the existing OpenHands data directory
+  ansible.builtin.stat:
+    path: "{{ openhands_data_dir }}"
+  register: openhands_backup_data_directory
+
+- name: Determine the installed Agent Canvas version
+  ansible.builtin.command:
+    argv:
+      - "{{ openhands_agent_canvas_bin }}"
+      - --version
+  register: openhands_backup_installed_version
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: openhands_backup_canvas_binary.stat.executable | default(false)
+
+- name: Decide whether an upgrade checkpoint is required
+  ansible.builtin.set_fact:
+    openhands_backup_required: >-
+      {{
+        openhands_manage_service and
+        openhands_backup_data_directory.stat.isdir | default(false) and
+        (
+          not (openhands_backup_canvas_binary.stat.executable | default(false)) or
+          (openhands_backup_installed_version.rc | default(1)) != 0 or
+          openhands_backup_installed_version.stdout | default('') | trim !=
+            openhands_agent_canvas_version
+        )
+      }}
+
+- name: Create a consistent pre-upgrade checkpoint
+  when: openhands_backup_required
+  block:
+    - name: Create the private backup directory
+      ansible.builtin.file:
+        path: "{{ openhands_backup_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Check whether OpenHands was running before the checkpoint
+      ansible.builtin.command:
+        argv:
+          - systemctl
+          - is-active
+          - --quiet
+          - openhands.service
+      register: openhands_backup_service_was_active
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Stop OpenHands before checkpointing
+      ansible.builtin.systemd_service:
+        name: openhands.service
+        state: stopped
+      when: openhands_backup_service_was_active.rc == 0
+
+    - name: List running OpenHands conversation containers
+      ansible.builtin.command:
+        argv:
+          - "{{ openhands_docker_executable }}"
+          - ps
+          - --quiet
+          - --filter
+          - label=ai.openhands.runtime-owner
+          - --filter
+          - name=agent-server-conversation-
+      register: openhands_backup_running_containers
+      changed_when: false
+      check_mode: false
+
+    - name: Stop remaining OpenHands conversation containers
+      ansible.builtin.command:
+        argv: "{{ [openhands_docker_executable, 'stop'] + openhands_backup_running_containers.stdout_lines }}"
+      when: openhands_backup_running_containers.stdout_lines | length > 0
+      changed_when: true
+
+    - name: Wait until no OpenHands conversation containers are running
+      ansible.builtin.command:
+        argv:
+          - "{{ openhands_docker_executable }}"
+          - ps
+          - --quiet
+          - --filter
+          - label=ai.openhands.runtime-owner
+          - --filter
+          - name=agent-server-conversation-
+      register: openhands_backup_containers_remaining
+      changed_when: false
+      failed_when: openhands_backup_containers_remaining.rc != 0
+      until: openhands_backup_containers_remaining.stdout | trim == ''
+      retries: 30
+      delay: 2
+      check_mode: false
+
+    - name: Get a UTC timestamp for the checkpoint
+      ansible.builtin.command:
+        argv:
+          - date
+          - -u
+          - +%Y%m%dT%H%M%SZ
+      register: openhands_backup_timestamp
+      changed_when: false
+      check_mode: false
+
+    - name: Set the checkpoint previous-version label
+      ansible.builtin.set_fact:
+        openhands_backup_previous_version: >-
+          {{ (openhands_backup_installed_version.stdout | default('', true) | trim)
+          | default('unknown', true)
+          | regex_replace('[^A-Za-z0-9._-]', '_') }}
+
+    - name: Set the checkpoint archive name
+      ansible.builtin.set_fact:
+        openhands_backup_archive_name: >-
+          {{ 'openhands-' ~ openhands_backup_previous_version ~ '-before-' ~
+          openhands_agent_canvas_version ~ '-' ~
+          (openhands_backup_timestamp.stdout | trim) ~ '.tar.gz' }}
+
+    - name: Set the checkpoint archive path
+      ansible.builtin.set_fact:
+        openhands_backup_archive_path: >-
+          {{ openhands_backup_dir ~ '/' ~ openhands_backup_archive_name }}
+
+    - name: Inspect the configured workspace directory
+      ansible.builtin.stat:
+        path: "{{ openhands_workspace_dir }}"
+      register: openhands_backup_workspace_directory
+
+    - name: Record whether workspace contents will be checkpointed
+      ansible.builtin.set_fact:
+        openhands_backup_workspace_included: >-
+          {{ openhands_backup_include_workspaces and
+          openhands_backup_workspace_directory.stat.isdir | default(false) }}
+
+    - name: Create a private temporary archive
+      ansible.builtin.file:
+        path: "{{ openhands_backup_archive_path }}.partial"
+        state: touch
+        owner: root
+        group: root
+        mode: "0600"
+        modification_time: preserve
+        access_time: preserve
+
+    - name: Archive the complete OpenHands data directory
+      ansible.builtin.command:
+        argv: >-
+          {{ [
+            'tar', '-C', '/', '-czf', openhands_backup_archive_path ~ '.partial', '--',
+            openhands_data_dir | regex_replace('^/', '')
+          ] + (
+            [openhands_workspace_dir | regex_replace('^/', '')]
+            if openhands_backup_workspace_included else []
+          ) }}
+      changed_when: true
+
+    - name: Finalize the checkpoint archive
+      ansible.builtin.command:
+        argv:
+          - mv
+          - --
+          - "{{ openhands_backup_archive_path }}.partial"
+          - "{{ openhands_backup_archive_path }}"
+      changed_when: true
+
+    - name: Calculate the checkpoint SHA-256 checksum
+      ansible.builtin.command:
+        argv:
+          - sha256sum
+          - "{{ openhands_backup_archive_path }}"
+      register: openhands_backup_checksum
+      changed_when: false
+
+    - name: Write the private temporary checksum sidecar
+      ansible.builtin.copy:
+        content: "{{ openhands_backup_checksum.stdout }}\n"
+        dest: "{{ openhands_backup_archive_path }}.sha256.partial"
+        owner: root
+        group: root
+        mode: "0600"
+
+    - name: Finalize the checkpoint checksum sidecar
+      ansible.builtin.command:
+        argv:
+          - mv
+          - --
+          - "{{ openhands_backup_archive_path }}.sha256.partial"
+          - "{{ openhands_backup_archive_path }}.sha256"
+      changed_when: true
+
+    - name: Report the completed pre-upgrade checkpoint
+      ansible.builtin.debug:
+        msg: >-
+          Created private pre-upgrade checkpoint {{ openhands_backup_archive_path }}
+          (workspace included: {{ openhands_backup_workspace_included }}).
+
+  rescue:
+    - name: Remove incomplete checkpoint files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ openhands_backup_archive_path | default('') }}.partial"
+        - "{{ openhands_backup_archive_path | default('') }}"
+        - "{{ openhands_backup_archive_path | default('') }}.sha256.partial"
+        - "{{ openhands_backup_archive_path | default('') }}.sha256"
+      when: openhands_backup_archive_path is defined
+
+    - name: Restart OpenHands after checkpoint failure
+      ansible.builtin.systemd_service:
+        name: openhands.service
+        state: started
+      when: openhands_backup_service_was_active.rc | default(1) == 0
+
+    - name: Abort the upgrade because its checkpoint failed
+      ansible.builtin.fail:
+        msg: >-
+          Pre-upgrade checkpoint creation failed; application changes were not
+          started. OpenHands was restarted if it had been running before backup.
