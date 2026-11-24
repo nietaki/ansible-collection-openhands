@@ -12,6 +12,7 @@ permissions:
 
 env:
   UV_VERSION: 0.11.8
+  ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/.ansible/collections
 
 jobs:
   quality:
@@ -29,6 +30,9 @@ jobs:
 
       - name: Install locked development dependencies
         run: uv sync --locked
+
+      - name: Build and install the collection under test
+        run: make collection-install
 
       - name: Run YAML lint
         run: uv run yamllint .
@@ -73,6 +77,9 @@ jobs:
 
       - name: Install locked development dependencies
         run: uv sync --locked
+
+      - name: Build and install the collection under test
+        run: make collection-install
 
       - name: Check Ansible version compatibility
         run: >-
@@ -123,7 +130,10 @@ jobs:
       - name: Install locked development dependencies
         run: uv sync --locked
 
-      - name: Run the delegated role scenario
+      - name: Build and install the collection under test
+        run: make collection-install
+
+      - name: Run the delegated collection role scenario
         if: matrix.checksum_mode == 'version-only'
         run: uv run molecule test -s default
 

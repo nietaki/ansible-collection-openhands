@@ -17,7 +17,7 @@
     - name: Exercise the production pre-upgrade backup tasks
       block:
         - name: Include the pre-upgrade backup tasks
-          ansible.builtin.include_tasks: "{{ playbook_dir }}/../../tasks/pre-upgrade-backup.yml"
+          ansible.builtin.include_tasks: "{{ playbook_dir }}/../../roles/agent_canvas/tasks/pre-upgrade-backup.yml"
 
         - name: Verify the upgrade detector result
           ansible.builtin.assert:

@@ -1,5 +1,9 @@
 ---
 profile: production
+# Preserve the established public openhands_ variable namespace after role rename.
+skip_list:
+  - meta-runtime[unsupported-version] # Keep the declared 2.20 minimum.
+  - var-naming[no-role-prefix]
 exclude_paths:
   - .ansible/
   - .cache/

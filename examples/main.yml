@@ -3,7 +3,7 @@
   hosts: openhands_hosts
   become: true
   roles:
-    - role: nietaki.openhands
+    - role: nietaki.openhands.agent_canvas
       vars:
         # Docker Engine and its docker group must already exist on the host.
         openhands_docker_group: docker

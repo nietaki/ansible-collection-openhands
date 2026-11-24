@@ -1,12 +1,13 @@
 # Configuration
 
 The public role interface consists of the `openhands_` variables declared in
-`defaults/main.yml` and described by `meta/argument_specs.yml`. The role
+`roles/agent_canvas/defaults/main.yml` and described by
+`roles/agent_canvas/meta/argument_specs.yml`. The role
 validates the complete interface before making managed-host changes.
 
 This document explains relationships and operational consequences that do not
-fit into one-line variable comments. `defaults/main.yml` remains the source of
-truth for exact default values.
+fit into one-line variable comments. `roles/agent_canvas/defaults/main.yml`
+remains the source of truth for exact default values.
 
 ## Supported deployment
 
@@ -98,8 +99,8 @@ Review that all five commands produced non-empty hexadecimal values before
 copying them into inventory, group variables, or another deployment-specific
 configuration source. You may configure only the architectures you deploy;
 an empty checksum skips verification on that architecture. The filenames and
-algorithms must continue to match the download URLs in `vars/main.yml` and
-`tasks/prerequisites.yml` if the installation layout changes.
+algorithms must continue to match the download URLs in `roles/agent_canvas/vars/main.yml` and
+`roles/agent_canvas/tasks/prerequisites.yml` if the installation layout changes.
 
 The role installs managed prerequisites below `/opt/openhands` and exposes
 stable internal paths:
@@ -125,7 +126,7 @@ A minimal private deployment is:
   hosts: openhands_hosts
   become: true
   roles:
-    - role: nietaki.openhands
+    - role: nietaki.openhands.agent_canvas
       vars:
         openhands_docker_group: docker
         openhands_public: false
@@ -356,7 +357,8 @@ secret handling.
 
 ## Configuration validation
 
-`meta/argument_specs.yml` validates variable types. `tasks/main.yml` performs
+`roles/agent_canvas/meta/argument_specs.yml` validates variable types.
+`roles/agent_canvas/tasks/main.yml` performs
 cross-variable and format checks before managed-host mutation, including:
 
 - semantic version formats and optional checksum syntax and lengths;

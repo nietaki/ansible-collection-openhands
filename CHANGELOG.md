@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** Packaged the Agent Canvas role as the `nietaki.openhands`
+  collection; its role FQCN is now `nietaki.openhands.agent_canvas`.
+
 ## [0.2.0] - 2026-11-24
 
 ### Added

@@ -1,7 +1,7 @@
 [project]
-name = "ansible-role-openhands-dev"
+name = "ansible-collection-openhands-dev"
 version = "0.1.0"
-description = "Development tooling for the nietaki.openhands Ansible role"
+description = "Development tooling for the nietaki.openhands Ansible collection"
 requires-python = ">=3.12"
 dependencies = []
 

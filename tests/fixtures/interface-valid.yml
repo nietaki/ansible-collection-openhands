@@ -29,7 +29,7 @@
   tasks:
     - name: Include the role with Docker preflight enabled  # noqa role-name[path]
       ansible.builtin.include_role:
-        name: "{{ playbook_dir }}/../.."
+        name: nietaki.openhands.agent_canvas
         public: true
 
     - name: Verify backup defaults are enabled with workspaces excluded

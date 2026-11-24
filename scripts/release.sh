@@ -27,11 +27,22 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "not in a Git reposi
 cd "$(git rev-parse --show-toplevel)"
 check_repository
 
-[ -f ROLE_VERSION.txt ] || fail "ROLE_VERSION.txt does not exist"
-version=$(cat ROLE_VERSION.txt)
+[ -f galaxy.yml ] || fail "galaxy.yml does not exist"
+version=$(awk '
+    $1 == "version:" {
+        if (count++) exit 2
+        value = $2
+        gsub(/^"/, "", value)
+        gsub(/"$/, "", value)
+    }
+    END {
+        if (count != 1) exit 1
+        print value
+    }
+' galaxy.yml) || fail "galaxy.yml must contain exactly one version field"
 printf '%s\n' "$version" | grep -Eq \
     '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' || \
-    fail "ROLE_VERSION.txt must contain a version in MAJOR.MINOR.PATCH format"
+    fail "galaxy.yml version must use MAJOR.MINOR.PATCH format"
 
 major=${version%%.*}
 remainder=${version#*.}
@@ -68,7 +79,7 @@ printf '  New version:     %s\n' "$new_version"
 printf '  Release date:    %s\n' "$release_date"
 printf '  Branch:          master\n'
 printf '  Commit:          Release %s\n' "$new_version"
-printf '  Files:           ROLE_VERSION.txt, CHANGELOG.md\n'
+printf '  Files:           galaxy.yml, CHANGELOG.md\n'
 printf '  Tag:             %s (lightweight)\n\n' "$new_version"
 printf 'Publish this release? [y/N] '
 IFS= read -r answer
@@ -77,15 +88,20 @@ case "$answer" in
     *) printf 'Release cancelled.\n'; exit 0 ;;
 esac
 
-printf '%s\n' "$new_version" > ROLE_VERSION.txt
+awk -v version="$new_version" '
+    $1 == "version:" { $2 = "\"" version "\""; count++ }
+    { print }
+    END { if (count != 1) exit 1 }
+' galaxy.yml > galaxy.yml.tmp || fail "could not update galaxy.yml version"
+mv galaxy.yml.tmp galaxy.yml
 awk -v heading="## [$new_version] - $release_date" '
     { print }
     $0 == "## [Unreleased]" { print ""; print heading }
 ' CHANGELOG.md > CHANGELOG.md.tmp
 mv CHANGELOG.md.tmp CHANGELOG.md
 
-git add -- ROLE_VERSION.txt CHANGELOG.md
-git commit -m "Release $new_version" -- ROLE_VERSION.txt CHANGELOG.md
+git add -- galaxy.yml CHANGELOG.md
+git commit -m "Release $new_version" -- galaxy.yml CHANGELOG.md
 git tag "$new_version"
 
 if ! git push --atomic origin master "refs/tags/$new_version"; then

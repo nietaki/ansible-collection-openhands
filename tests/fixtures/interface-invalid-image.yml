@@ -20,4 +20,4 @@
   tasks:
     - name: Include the role with a floating conversation image  # noqa role-name[path]
       ansible.builtin.include_role:
-        name: "{{ playbook_dir }}/../.."
+        name: nietaki.openhands.agent_canvas

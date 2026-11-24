@@ -7,6 +7,35 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "ansible-collection-openhands-dev"
+version = "0.1.0"
+source = { virtual = "." }
+
+[package.dev-dependencies]
+dev = [
+    { name = "ansible-core" },
+    { name = "ansible-lint" },
+    { name = "molecule" },
+    { name = "molecule-plugins" },
+    { name = "pathspec" },
+    { name = "pytest" },
+    { name = "yamllint" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "ansible-core", specifier = "==2.21.3" },
+    { name = "ansible-lint", specifier = "==25.11.0" },
+    { name = "molecule", specifier = "==25.11.1" },
+    { name = "molecule-plugins", specifier = "==26.11.0" },
+    { name = "pathspec", specifier = "==0.12.1" },
+    { name = "pytest", specifier = "==8.4.2" },
+    { name = "yamllint", specifier = "==1.37.1" },
+]
+
+[[package]]
 name = "ansible-compat"
 version = "26.11.0"
 source = { registry = "https://pypi.org/simple" }
@@ -65,35 +94,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ea/5a/ca084c650abd30f10d58c8727f9f64ed7e36f9c26f064559d22473cb9a33/ansible_lint-25.11.0.tar.gz", hash = "sha256:79e35246c8bdaacdbe37aa30a6ea471177482ac58fbcf1868f765bdafca3427e", size = 717176, upload-time = "2025-11-10T13:32:09.724Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f6/7e/9cf470b253cdf00e9530012973df7ef615e4efb80ea1efda7fbe81f11b3b/ansible_lint-25.11.0-py3-none-any.whl", hash = "sha256:4a0f83e292fa70e9922ad2c02e10708013b7e77a93364d729abc2cbf165c75c4", size = 322647, upload-time = "2025-11-10T13:32:08.189Z" },
-]
-
-[[package]]
-name = "ansible-role-openhands-dev"
-version = "0.1.0"
-source = { virtual = "." }
-
-[package.dev-dependencies]
-dev = [
-    { name = "ansible-core" },
-    { name = "ansible-lint" },
-    { name = "molecule" },
-    { name = "molecule-plugins" },
-    { name = "pathspec" },
-    { name = "pytest" },
-    { name = "yamllint" },
-]
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "ansible-core", specifier = "==2.21.3" },
-    { name = "ansible-lint", specifier = "==25.11.0" },
-    { name = "molecule", specifier = "==25.11.1" },
-    { name = "molecule-plugins", specifier = "==26.11.0" },
-    { name = "pathspec", specifier = "==0.12.1" },
-    { name = "pytest", specifier = "==8.4.2" },
-    { name = "yamllint", specifier = "==1.37.1" },
 ]
 
 [[package]]

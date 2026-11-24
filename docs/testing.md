@@ -17,9 +17,11 @@ uv sync --locked
 make check
 ```
 
-`make check` runs linting, contract tests, and the default Molecule scenario. It
-is designed to be safe on developer workstations, including macOS. It does not
-install OpenHands, create a service account, manage systemd, or require Docker.
+`make check` builds and installs the collection artifact locally, then runs
+linting, contract tests, and the default Molecule scenario. This verifies the
+role through its collection FQCN and packaged files. It is designed to be safe
+on developer workstations, including macOS. It does not install OpenHands,
+create a service account, manage systemd, or require Docker.
 
 The full persistence scenario is separate and has explicit checksum modes:
 
@@ -40,6 +42,7 @@ its cleanup playbook.
 
 | Layer | Main command | Purpose | Typical environment |
 | --- | --- | --- | --- |
+| Collection packaging | `make collection-install` | Build and install the local collection artifact | Any development host |
 | YAML lint | `make lint-yaml` | YAML syntax and formatting | Any development host |
 | Ansible lint | `make lint` | Ansible correctness and production-profile conventions | Any development host |
 | Contract tests | `make test` | Public interface, validation, templates, and failure paths | Any development host |
@@ -55,7 +58,8 @@ The repository uses:
 
 - `yamllint` for YAML formatting and syntax;
 - `ansible-lint` with the production profile for Ansible-specific checks;
-- `ansible-playbook --syntax-check` for the example role invocation.
+- `ansible-playbook --syntax-check` for the example collection role invocation;
+- collection build and installation from the repository artifact.
 
 The relevant files are:
 
