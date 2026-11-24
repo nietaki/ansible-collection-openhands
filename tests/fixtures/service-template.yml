@@ -20,7 +20,7 @@
 
     - name: Render the non-public OpenHands systemd unit  # noqa no-relative-paths
       ansible.builtin.template:
-        src: "{{ playbook_dir }}/../../templates/openhands.service.j2"
+        src: "{{ playbook_dir }}/../../roles/agent_canvas/templates/openhands.service.j2"
         dest: "{{ openhands_template_test_dir }}/openhands-private.service"
         mode: "0644"
       vars:
@@ -28,7 +28,7 @@
 
     - name: Render the public OpenHands systemd unit  # noqa no-relative-paths
       ansible.builtin.template:
-        src: "{{ playbook_dir }}/../../templates/openhands.service.j2"
+        src: "{{ playbook_dir }}/../../roles/agent_canvas/templates/openhands.service.j2"
         dest: "{{ openhands_template_test_dir }}/openhands-public.service"
         mode: "0644"
       vars:

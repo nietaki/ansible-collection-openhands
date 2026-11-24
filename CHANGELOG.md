@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Run the CI suite on pushes to every branch, in addition to pull requests.
+- Document a 60-second minimum interval between CI status polls while a run
+  is active.
+- Publish the collection to Ansible Galaxy from matching SemVer tags after all
+  CI validation jobs pass, using the `galaxy-publish` environment secret.
+
+### Changed
+
+- **Breaking:** Packaged the Agent Canvas role as the `nietaki.openhands`
+  collection; its role FQCN is now `nietaki.openhands.agent_canvas`.
+
 ## [0.2.0] - 2026-11-24
 
 ### Added

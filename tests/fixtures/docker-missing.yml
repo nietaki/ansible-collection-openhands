@@ -15,4 +15,4 @@
   tasks:
     - name: Include the role with a missing Docker executable  # noqa role-name[path]
       ansible.builtin.include_role:
-        name: "{{ playbook_dir }}/../.."
+        name: nietaki.openhands.agent_canvas

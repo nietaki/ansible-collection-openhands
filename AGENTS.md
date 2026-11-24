@@ -18,6 +18,12 @@ workflow change.
 - Do not edit an existing released section except to correct inaccurate or
   missing information.
 
+## CI status polling
+
+When a GitHub Actions run is still in progress, wait at least 60 seconds between
+status checks instead of repeatedly polling. Follow a different interval if the
+operator requests one.
+
 ## Release ownership
 
 Releases are the operator's responsibility. Agents must not run the release

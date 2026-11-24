@@ -37,4 +37,4 @@
 
     - name: Include the role with an inaccessible Docker daemon  # noqa role-name[path]
       ansible.builtin.include_role:
-        name: "{{ playbook_dir }}/../.."
+        name: nietaki.openhands.agent_canvas

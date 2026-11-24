@@ -4,7 +4,9 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - '**'
+    tags:
+      - '[0-9]*.[0-9]*.[0-9]*'
   workflow_dispatch:
 
 permissions:
@@ -12,6 +14,7 @@ permissions:
 
 env:
   UV_VERSION: 0.11.8
+  ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/.ansible/collections
 
 jobs:
   quality:
@@ -29,6 +32,9 @@ jobs:
 
       - name: Install locked development dependencies
         run: uv sync --locked
+
+      - name: Build and install the collection under test
+        run: make collection-install
 
       - name: Run YAML lint
         run: uv run yamllint .
@@ -73,6 +79,9 @@ jobs:
 
       - name: Install locked development dependencies
         run: uv sync --locked
+
+      - name: Build and install the collection under test
+        run: make collection-install
 
       - name: Check Ansible version compatibility
         run: >-
@@ -123,7 +132,10 @@ jobs:
       - name: Install locked development dependencies
         run: uv sync --locked
 
-      - name: Run the delegated role scenario
+      - name: Build and install the collection under test
+        run: make collection-install
+
+      - name: Run the delegated collection role scenario
         if: matrix.checksum_mode == 'version-only'
         run: uv run molecule test -s default
 
@@ -155,3 +167,120 @@ jobs:
 
       - name: Run the official image contract smoke test
         run: uv run python -m unittest tests.contract.test_official_image
+
+  release-eligibility:
+    name: Classify release tag
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    outputs:
+      should_publish: ${{ steps.classify.outputs.should_publish }}
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Classify and validate release tag
+        id: classify
+        run: |
+          tag="$GITHUB_REF_NAME"
+          if ! printf '%s\n' "$tag" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; then
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            echo "Tag '$tag' is not a plain X.Y.Z release tag; publication skipped." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          version=$(awk '$1 == "version:" { print $2 }' galaxy.yml | tr -d '"')
+          if [ "$tag" != "$version" ]; then
+            echo "Tag '$tag' does not match galaxy.yml version '$version'" >&2
+            exit 1
+          fi
+
+          git fetch --no-tags origin +refs/heads/master:refs/remotes/origin/master
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/master; then
+            echo "Tagged commit is not reachable from origin/master" >&2
+            exit 1
+          fi
+
+          echo "should_publish=true" >> "$GITHUB_OUTPUT"
+
+  publish-galaxy:
+    name: Publish collection to Ansible Galaxy
+    if: >-
+      github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') &&
+      needs.release-eligibility.outputs.should_publish == 'true'
+    needs:
+      - quality
+      - ansible-compatibility
+      - native-integration
+      - release-eligibility
+    runs-on: ubuntu-26.04
+    environment:
+      name: galaxy-publish
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the tagged release
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Verify release tag and version
+        run: |
+          tag="$GITHUB_REF_NAME"
+          if ! printf '%s\n' "$tag" | grep -Eq '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; then
+            echo "Tag '$tag' is not a plain MAJOR.MINOR.PATCH version" >&2
+            exit 1
+          fi
+
+          version=$(awk '$1 == "version:" { gsub(/\"/, "", $2); print $2 }' galaxy.yml)
+          if [ "$tag" != "$version" ]; then
+            echo "Tag '$tag' does not match galaxy.yml version '$version'" >&2
+            exit 1
+          fi
+
+          git fetch --no-tags origin +refs/heads/master:refs/remotes/origin/master
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/master; then
+            echo "Tagged commit is not reachable from origin/master" >&2
+            exit 1
+          fi
+
+      - name: Install uv
+        run: python3 -m pip install --user "uv==${UV_VERSION}"
+
+      - name: Add the user install directory to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install locked development dependencies
+        run: uv sync --locked
+
+      - name: Build the collection artifact
+        run: make collection-install
+
+      - name: Publish the collection
+        env:
+          ANSIBLE_GALAXY_API_KEY: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
+        run: |
+          if [ -z "$ANSIBLE_GALAXY_API_KEY" ]; then
+            echo 'ANSIBLE_GALAXY_API_KEY is not configured in the galaxy-publish environment' >&2
+            exit 1
+          fi
+
+          version=$(awk '$1 == "version:" { gsub(/\"/, "", $2); print $2 }' galaxy.yml)
+          artifact=".ansible/collection-build/nietaki-openhands-${version}.tar.gz"
+          test -f "$artifact"
+
+          config="$RUNNER_TEMP/ansible-galaxy.cfg"
+          umask 077
+          printf '%s\n' \
+            '[galaxy]' \
+            'server_list = release_galaxy' \
+            '' \
+            '[galaxy_server.release_galaxy]' \
+            'url = https://galaxy.ansible.com/' \
+            "token = $ANSIBLE_GALAXY_API_KEY" > "$config"
+          trap 'rm -f "$config"' EXIT
+          ANSIBLE_CONFIG="$config" uv run ansible-galaxy collection publish \
+            "$artifact" --server release_galaxy

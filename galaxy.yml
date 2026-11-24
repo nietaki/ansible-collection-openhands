@@ -1,0 +1,42 @@
+namespace: nietaki
+name: openhands
+version: "0.2.0"
+readme: README.md
+authors:
+  - nietaki
+description: Ansible collection for deploying OpenHands Agent Canvas
+license:
+  - MIT
+tags:
+  - infrastructure
+  - agentcanvas
+  - docker
+  - openhands
+dependencies: {}
+repository: https://github.com/nietaki/ansible-collection-openhands
+documentation: https://github.com/nietaki/ansible-collection-openhands
+issues: https://github.com/nietaki/ansible-collection-openhands/issues
+build_ignore:
+  - .ansible
+  - .ansible-lint
+  - .cache
+  - .github
+  - .git
+  - .gitignore
+  - .molecule
+  - .pytest_cache
+  - .undodir
+  - .venv
+  - .yamllint.yml
+  - AGENTS.md
+  - CHANGELOG.md
+  - Makefile
+  - Session.vim
+  - ansible.cfg
+  - features
+  - molecule
+  - pyproject.toml
+  - requirements.yml
+  - scripts
+  - tests
+  - uv.lock

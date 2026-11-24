@@ -10,4 +10,4 @@
   tasks:
     - name: Include the role with an invalid backup path  # noqa role-name[path]
       ansible.builtin.include_role:
-        name: "{{ playbook_dir }}/../.."
+        name: nietaki.openhands.agent_canvas

@@ -76,4 +76,4 @@
       tags:
         - persistence-checksum-mode
   roles:
-    - role: nietaki.openhands
+    - role: nietaki.openhands.agent_canvas

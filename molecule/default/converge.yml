@@ -19,4 +19,4 @@
     openhands_data_dir: "/tmp/openhands-molecule/data"
     openhands_workspace_dir: "/tmp/openhands-molecule/workspaces"
   roles:
-    - role: nietaki.openhands
+    - role: nietaki.openhands.agent_canvas

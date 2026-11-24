@@ -1,5 +1,7 @@
 # nietaki.openhands
 
+An Ansible collection containing the `agent_canvas` role.
+
 Deploy OpenHands Agent Canvas as a native systemd service with Dockerized
 conversations on Ubuntu 26.04.
 
@@ -187,6 +189,18 @@ and SHA-512 variables enable checksum verification when deployment policy
 requires content pinning. The conversation image is verified on both native
 supported architectures.
 
+## Install
+
+After the collection is published, install it from Ansible Galaxy:
+
+```console
+ansible-galaxy collection install nietaki.openhands
+```
+
+The role's fully qualified collection name (FQCN) is
+`nietaki.openhands.agent_canvas`. For development from a checkout, run
+`make collection-install` to build and install the local collection artifact.
+
 ## Example
 
 ```yaml
@@ -195,7 +209,7 @@ supported architectures.
   hosts: openhands_hosts
   become: true
   roles:
-    - role: nietaki.openhands
+    - role: nietaki.openhands.agent_canvas
       vars:
         # Docker Engine and this access group must already exist.
         openhands_docker_group: docker
