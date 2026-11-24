@@ -18,12 +18,22 @@ documentation: https://github.com/nietaki/ansible-collection-openhands
 issues: https://github.com/nietaki/ansible-collection-openhands/issues
 build_ignore:
   - .ansible
+  - .ansible-lint
+  - .cache
   - .github
+  - .git
   - .gitignore
+  - .molecule
+  - .pytest_cache
+  - .undodir
+  - .venv
   - .yamllint.yml
   - AGENTS.md
   - CHANGELOG.md
   - Makefile
+  - Session.vim
+  - ansible.cfg
+  - features
   - molecule
   - pyproject.toml
   - requirements.yml
