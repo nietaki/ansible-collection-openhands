@@ -126,9 +126,11 @@ the artifact from the tagged commit; a failed validation job prevents publishing
 
 ## CI and diagnostics
 
-CI checks the declared minimum Ansible version, the latest available Ansible
+CI runs on pull requests, pushes to every branch, and version-shaped tag pushes.
+It checks the declared minimum Ansible version, the latest available Ansible
 Core, and the version used by the primary `kotik` consumer. Native integration
-runs on both amd64 and arm64 Ubuntu 26.04 runners.
+runs on both amd64 and arm64 Ubuntu 26.04 runners. Galaxy publishing remains
+limited to eligible version tags after all validation jobs pass.
 
 The persistence cleanup captures a secret-safe bundle in
 `/tmp/openhands-ci-diagnostics/`, and CI uploads it even after failures. Never

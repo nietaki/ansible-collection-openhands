@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Run the CI suite on pushes to every branch, in addition to pull requests.
+- Document a 60-second minimum interval between CI status polls while a run
+  is active.
 - Publish the collection to Ansible Galaxy from matching SemVer tags after all
   CI validation jobs pass, using the `galaxy-publish` environment secret.
 
