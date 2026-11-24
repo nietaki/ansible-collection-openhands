@@ -269,13 +269,14 @@ stop the service around the snapshot.
 
 ## Automatic pre-upgrade checkpoints
 
-The role can create a local checkpoint before changing the Agent Canvas version
-of an existing installation. It is disabled by default:
+The role creates a local checkpoint before changing the Agent Canvas version
+of an existing installation by default. Disable it only when that risk is
+acceptable:
 
 ```yaml
 openhands_backup_enabled: true
 openhands_backup_dir: /var/backups/openhands
-openhands_backup_include_workspaces: true
+openhands_backup_include_workspaces: false
 ```
 
 When enabled, the role compares the installed Agent Canvas `--version` with
@@ -293,12 +294,12 @@ if it was running and aborts before application changes.
 
 Archives and SHA-256 sidecars are written as root-owned mode `0600` files in a
 root-owned mode `0700` directory. Archive members are paths relative to `/`.
-The archive contains the complete data directory and, by default, the
-workspace directory. Set `openhands_backup_include_workspaces: false` to omit
-workspaces; that checkpoint is not a complete rollback point. Backups are not
-pruned automatically, so monitor free space and remove old archives according
-to your retention policy. The archive remains on the same host and is not a
-disaster-recovery backup.
+The archive contains the complete data directory. Workspaces are excluded by
+default; set `openhands_backup_include_workspaces: true` to include them. Without
+them, the checkpoint does not capture workspace files and is not a complete
+rollback point. Backups are not pruned automatically, so monitor free space and
+remove old archives according to your retention policy. The archive remains on
+the same host and is not a disaster-recovery backup.
 
 The configured backup directory must be an absolute, non-root path outside
 both persistence roots. Do not place it on a path writable by the service user.

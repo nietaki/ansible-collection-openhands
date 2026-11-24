@@ -105,7 +105,7 @@ argument_specs:
         description: Root directory for conversation workspaces.
       openhands_backup_enabled:
         type: bool
-        default: false
+        default: true
         description: Create a private persistence checkpoint before upgrading an existing installation.
       openhands_backup_dir:
         type: str
@@ -113,7 +113,7 @@ argument_specs:
         description: Root-only directory in which pre-upgrade checkpoints are stored.
       openhands_backup_include_workspaces:
         type: bool
-        default: true
+        default: false
         description: Include the configured workspace directory in pre-upgrade checkpoints.
       openhands_conversation_image:
         type: str

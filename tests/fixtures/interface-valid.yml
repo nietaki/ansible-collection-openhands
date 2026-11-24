@@ -32,6 +32,13 @@
         name: "{{ playbook_dir }}/../.."
         public: true
 
+    - name: Verify backup defaults are enabled with workspaces excluded
+      ansible.builtin.assert:
+        that:
+          - openhands_backup_enabled
+          - not openhands_backup_include_workspaces
+          - openhands_backup_dir == '/var/backups/openhands'
+
     - name: Verify checksum verification is disabled by default
       ansible.builtin.assert:
         that:

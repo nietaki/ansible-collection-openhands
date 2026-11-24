@@ -73,8 +73,32 @@ target host, defaulting to `/var/lib/openhands` and
 conversation workspaces are kept on the host and bind-mounted into containers.
 
 These directories are managed even when prerequisite installation or service
-management is disabled. Changing either path does not migrate existing data,
-and the role does not manage backups or filesystem migration.
+management is disabled. Changing either path does not migrate existing data;
+plan and perform filesystem migration separately.
+
+### Create pre-upgrade checkpoints
+
+Pre-upgrade checkpoints are enabled by default. Before changing the Agent
+Canvas version on an existing installation, the role stops the service and any
+remaining active OpenHands conversation containers, then writes the complete
+data directory to a root-only archive under `/var/backups/openhands`. Same-
+version runs and fresh installations do not create archives. A failed required
+checkpoint aborts before application changes.
+
+Workspace contents are excluded by default to limit archive size. Set
+`openhands_backup_include_workspaces: true` to include them. The archive stays
+on the same host, and old archives are not automatically pruned; this is a
+rollback checkpoint, not disaster recovery. Restore is a manual operation that
+must pair the checkpoint with the previous software configuration.
+
+```yaml
+openhands_backup_enabled: true
+openhands_backup_dir: /var/backups/openhands
+openhands_backup_include_workspaces: false
+```
+
+See [`docs/backups.md`](docs/backups.md) for archive verification, security,
+retention, and restore instructions.
 
 ### Prepare the conversation image (optional)
 

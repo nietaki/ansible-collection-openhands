@@ -20,9 +20,9 @@ openhands_install_prerequisites: true
 # Prepares the conversation image and renders, enables, starts, and health-checks the systemd service.
 openhands_manage_service: true
 # Creates a root-only persistence checkpoint before upgrading an existing installation.
-openhands_backup_enabled: false
+openhands_backup_enabled: true
 openhands_backup_dir: /var/backups/openhands
-openhands_backup_include_workspaces: true
+openhands_backup_include_workspaces: false
 
 # Service identity and Docker access.
 openhands_service_user: openhands

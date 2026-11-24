@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   consistency requirements, container shutdown behavior, manual restore
   contract, and deferred improvements.
 
+### Changed
+
+- Enabled pre-upgrade checkpoints by default and excluded workspaces by default;
+  operators can disable checkpoints or opt in to workspace inclusion.
+
 ## [0.1.0] - 2026-11-23
 
 ### Added
