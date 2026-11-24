@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgrade GitHub Actions checkout and artifact upload actions to Node.js
+  24-compatible releases.
+
 ## [0.3.1] - 2026-11-24
 
 ### Added
