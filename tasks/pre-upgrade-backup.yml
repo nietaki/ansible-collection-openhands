@@ -111,11 +111,15 @@
       changed_when: false
       check_mode: false
 
-    - name: Set checkpoint archive paths
+    - name: Set the checkpoint previous-version label
       ansible.builtin.set_fact:
         openhands_backup_previous_version: >-
-          {{ openhands_backup_installed_version.stdout | default('unknown') | trim
+          {{ (openhands_backup_installed_version.stdout | default('', true) | trim)
+          | default('unknown', true)
           | regex_replace('[^A-Za-z0-9._-]', '_') }}
+
+    - name: Set the checkpoint archive name
+      ansible.builtin.set_fact:
         openhands_backup_archive_name: >-
           {{ 'openhands-' ~ openhands_backup_previous_version ~ '-before-' ~
           openhands_agent_canvas_version ~ '-' ~

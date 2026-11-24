@@ -1,0 +1,104 @@
+---
+- name: Exercise the pre-upgrade checkpoint transaction
+  hosts: localhost
+  gather_facts: false
+  become: true
+  vars:
+    openhands_manage_service: true
+    openhands_backup_enabled: true
+    openhands_backup_dir: "{{ backup_test_root }}/backups"
+    openhands_data_dir: "{{ backup_test_root }}/data"
+    openhands_workspace_dir: "{{ backup_test_root }}/workspaces"
+    openhands_backup_include_workspaces: "{{ backup_test_include_workspaces }}"
+    openhands_agent_canvas_version: "2.0.0"
+    openhands_agent_canvas_bin: "{{ backup_test_canvas_bin }}"
+    openhands_docker_executable: "{{ backup_test_docker_bin }}"
+  tasks:
+    - name: Exercise the production pre-upgrade backup tasks
+      block:
+        - name: Include the pre-upgrade backup tasks
+          ansible.builtin.include_tasks: "{{ playbook_dir }}/../../tasks/pre-upgrade-backup.yml"
+
+        - name: Verify the upgrade detector result
+          ansible.builtin.assert:
+            that:
+              - openhands_backup_required | bool == backup_test_expected
+
+        - name: Find completed checkpoint archives
+          ansible.builtin.find:
+            paths: "{{ openhands_backup_dir }}"
+            patterns: "*.tar.gz"
+            file_type: file
+          register: backup_test_archives
+          when: backup_test_expected
+
+        - name: Verify exactly one archive and checksum were created
+          ansible.builtin.assert:
+            that:
+              - backup_test_archives.files | length == 1
+              - backup_test_previous_version == openhands_backup_previous_version
+              - >-
+                  backup_test_archives.files[0].path is search(
+                  '/openhands-' ~ backup_test_previous_version ~ '-before-2[.]0[.]0-')
+          when: backup_test_expected
+
+        - name: Inspect the completed archive
+          ansible.builtin.command:
+            argv:
+              - tar
+              - -tzf
+              - "{{ backup_test_archives.files[0].path }}"
+          register: backup_test_archive_listing
+          changed_when: false
+          when: backup_test_expected
+
+        - name: Verify the archive contains data and expected workspace content
+          ansible.builtin.assert:
+            that:
+              - >-
+                  backup_test_archive_listing.stdout_lines
+                  | select('search', '/data/data-marker[.]txt$') | list | length == 1
+              - >-
+                  (backup_test_archive_listing.stdout_lines
+                  | select('search', '/workspaces/workspace-marker[.]txt$')
+                  | list | length == 1) == (backup_test_include_workspaces | bool)
+          when: backup_test_expected
+
+        - name: Verify the checkpoint checksum
+          ansible.builtin.command:
+            argv:
+              - sha256sum
+              - -c
+              - "{{ backup_test_archives.files[0].path }}.sha256"
+          changed_when: false
+          when: backup_test_expected
+
+        - name: Inspect private checkpoint ownership and permissions
+          ansible.builtin.stat:
+            path: "{{ item }}"
+          loop:
+            - "{{ openhands_backup_dir }}"
+            - "{{ backup_test_archives.files[0].path }}"
+            - "{{ backup_test_archives.files[0].path }}.sha256"
+          register: backup_test_private_paths
+          when: backup_test_expected
+
+        - name: Verify private checkpoint ownership and permissions
+          ansible.builtin.assert:
+            that:
+              - backup_test_private_paths.results[0].stat.pw_name == 'root'
+              - backup_test_private_paths.results[0].stat.gr_name == 'root'
+              - backup_test_private_paths.results[0].stat.mode == '0700'
+              - backup_test_private_paths.results[1].stat.pw_name == 'root'
+              - backup_test_private_paths.results[1].stat.gr_name == 'root'
+              - backup_test_private_paths.results[1].stat.mode == '0600'
+              - backup_test_private_paths.results[2].stat.pw_name == 'root'
+              - backup_test_private_paths.results[2].stat.gr_name == 'root'
+              - backup_test_private_paths.results[2].stat.mode == '0600'
+          when: backup_test_expected
+
+      always:
+        - name: Remove the isolated backup test data
+          ansible.builtin.file:
+            path: "{{ backup_test_root }}"
+            state: absent

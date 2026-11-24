@@ -74,8 +74,9 @@ make lint
 ## Contract tests
 
 Contract tests are Python `unittest` tests under `tests/contract/`. They launch
-small Ansible fixtures or validate repository-level policies without requiring
-a privileged Linux host.
+small Ansible fixtures or validate repository-level policies. The pre-upgrade
+checkpoint transaction test needs passwordless root escalation and is skipped
+on workstations that cannot provide it.
 
 ### Public interface tests
 
@@ -92,6 +93,24 @@ checks that:
 The Docker failure fixtures deliberately use an impossible executable path or a
 small fake executable. They test the role's failure behavior without talking to
 the developer's real Docker daemon.
+
+### Pre-upgrade checkpoint tests
+
+`tests/contract/test_backup.py` creates temporary persistence roots and a small
+fake Agent Canvas executable that reports a selected version. It exercises the
+production backup task file with a fake Docker executable that reports no
+running containers. The scenarios verify that fresh and same-version runs do
+not checkpoint, while a version mismatch or an unknown/missing installed
+version with existing data does. For created archives, the fixture checks data
+members, default workspace exclusion and opt-in inclusion, the SHA-256
+sidecar, root ownership and private modes, and the version context in the
+archive filename.
+
+The archive tests use the real system `tar` and `sha256sum`. They run with
+passwordless `sudo` where available; otherwise they are skipped so `make check`
+remains usable on developer workstations. CI's Ubuntu runner executes them with
+privilege escalation. The Docker client is stubbed, and these tests do not
+exercise service shutdown or running-container quiescence.
 
 ### Conversation-image policy tests
 
