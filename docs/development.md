@@ -107,10 +107,22 @@ make release-major
 Record notable work under `## [Unreleased]` in `CHANGELOG.md`. The release
 script runs `make check`, displays the proposed version and local release date,
 and asks for confirmation. Enter `y` to update the version in `galaxy.yml`,
-place the Unreleased changelog entries under `## [X.Y.Z] - YYYY-MM-DD`, create a commit
-named `Release X.Y.Z`, create the lightweight `X.Y.Z` tag, and atomically push
-the commit and tag to `origin`. The release aborts if the target tag already
-exists locally or on the remote; existing tags are never moved.
+place the Unreleased changelog entries under `## [X.Y.Z] - YYYY-MM-DD`, create a
+commit named `Release X.Y.Z`, create the lightweight `X.Y.Z` tag, and atomically
+push the commit and tag to `origin`. The release aborts if the target tag already
+exists locally or on the remote; existing tags are never moved. Pushing the
+release tag triggers CI for that tagged commit. After all validation jobs pass,
+CI publishes the collection to Ansible Galaxy only when the plain `X.Y.Z` tag
+matches `galaxy.yml` and its commit is reachable from `master`. The publishing
+job reads `ANSIBLE_GALAXY_API_KEY` from the GitHub Actions `galaxy-publish`
+environment; it is not exposed to validation jobs. Tags that are not plain
+`X.Y.Z` versions are treated as non-release tags and skip publication. A strict
+version tag that disagrees with `galaxy.yml` or is not on `master` fails release
+eligibility.
+
+Galaxy versions are immutable after publication. Review collection contents,
+changelog entries, and the version/tag match before creating the tag. CI builds
+the artifact from the tagged commit; a failed validation job prevents publishing.
 
 ## CI and diagnostics
 

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Publish the collection to Ansible Galaxy from matching SemVer tags after all
+  CI validation jobs pass, using the `galaxy-publish` environment secret.
+
 ### Changed
 
 - **Breaking:** Packaged the Agent Canvas role as the `nietaki.openhands`
