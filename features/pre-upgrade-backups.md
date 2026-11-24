@@ -94,8 +94,8 @@ The detector should behave conservatively:
   determined should be treated as requiring a backup.
 
 Some unnecessary checkpoints are acceptable when they keep the detector simple
-and safe. A role release, configuration-only change, Node.js change, or uv
-change does not by itself have to trigger a checkpoint in the first
+and safe. A collection release, configuration-only change, Node.js change, or
+uv change does not by itself have to trigger a checkpoint in the first
 implementation.
 
 Changing `openhands_data_dir` or `openhands_workspace_dir` is not an ordinary

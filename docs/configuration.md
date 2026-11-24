@@ -382,6 +382,6 @@ it explicitly to use version-only installation.
 
 The repository does not yet claim automated previous-release migration
 coverage because no released and production-exercised baseline exists. The
-future upgrade scenario will provision the previous released role before
+future upgrade scenario will provision the previous released collection before
 applying a candidate release. Until then, back up persistent data and review
-release changes before changing pinned versions or deploying a newer role.
+release changes before changing pinned versions or deploying a newer collection.

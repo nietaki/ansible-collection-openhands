@@ -15,7 +15,7 @@ uv sync --locked
 
 Use the Makefile as the local command interface. `make check`, `make test`,
 and Molecule targets build and install the collection artifact locally before
-running role-based checks:
+running role-focused checks:
 
 ```console
 make collection-install                  # build and install the local collection artifact

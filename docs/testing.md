@@ -241,19 +241,19 @@ environment values, API keys, and arbitrary extra environment values.
 
 ## Upgrade coverage
 
-A true role-upgrade test should provision a host with the previous released role
-and then apply the candidate release. That can detect migrations involving old
-paths, templates, variables, systemd state, and files that a same-version
-reconvergence cannot exercise.
+A true collection-upgrade test should provision a host with the previous
+released collection and then apply the candidate release. That can detect
+migrations involving old paths, templates, variables, systemd state, and files
+that a same-version reconvergence cannot exercise.
 
 The project does not yet have a released and production-exercised baseline, so
 it does not invent an artificial upgrade fixture. Previous-release-to-candidate
-coverage is deferred until the first real role upgrade. Clean installation and
-idempotence remain covered on both supported architectures in the meantime.
+coverage is deferred until the first real collection upgrade. Clean installation
+and idempotence remain covered on both supported architectures in the meantime.
 
 A consumer-specific rehearsal for `kotik` or `underturn` is complementary: it
 should validate inventory, networking, Docker policy, and credentials outside
-this standalone role's CI.
+this collection's CI.
 
 ## Choosing where to add a test
 
@@ -266,7 +266,7 @@ Use the narrowest layer that can detect the regression:
   persistence scenario;
 - architecture-specific behavior: native matrix;
 - compatibility with a different Ansible release: compatibility matrix;
-- migration from an older published role: future upgrade scenario.
+- migration from an older published collection: future upgrade scenario.
 
 Changes to managed-host behavior should normally include both a focused
 contract or template test where practical and integration coverage for the real
