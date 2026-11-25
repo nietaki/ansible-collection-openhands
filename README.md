@@ -5,11 +5,6 @@ An Ansible collection containing the `agent_canvas` role.
 Deploy OpenHands Agent Canvas as a native systemd service with Dockerized
 conversations on Ubuntu 26.04.
 
-> **Project status:** pre-release. The `0.3.0` tag passed native amd64 and
-> arm64 CI, but Galaxy import failed because its collection artifact lacked the
-> role-level README required by Galaxy. This update adds that README for a
-> subsequent version; the `0.3.0` tag itself should remain unchanged.
-
 ## Supported deployment
 
 | Item | Supported value |
