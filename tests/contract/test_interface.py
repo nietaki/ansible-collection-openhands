@@ -73,7 +73,7 @@ class InterfaceContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("OpenHands configuration is invalid", output)
 
-    def test_floating_conversation_image_fails(self) -> None:
+    def test_conversation_image_with_whitespace_fails(self) -> None:
         result = self.run_fixture("interface-invalid-image.yml")
         output = f"{result.stdout}\n{result.stderr}"
 

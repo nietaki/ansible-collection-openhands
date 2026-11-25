@@ -113,7 +113,7 @@ Docker selected an image matching the host architecture. The image tag is set
 with `openhands_conversation_image`, and
 `openhands_conversation_image_digest` can pin its manifest digest.
 
-The role accepts pinned official OpenHands Agent Server `-golang` images; it
+The role accepts any non-empty, whitespace-free Docker image reference; it
 does not build, modify, or configure software inside the image. Because an
 already-present tag is not pulled again, use a digest when deployment policy
 requires immutable image content.

@@ -36,13 +36,8 @@
       - openhands_data_dir != '/'
       - openhands_workspace_dir is match('^/')
       - openhands_workspace_dir != '/'
-      - openhands_conversation_image is match('^ghcr\.io/openhands/agent-server:[^@/:\s]+-golang$')
-      - >-
-          openhands_conversation_image not in [
-            'ghcr.io/openhands/agent-server:latest-golang',
-            'ghcr.io/openhands/agent-server:main-golang'
-          ]
-      - "'@' not in openhands_conversation_image"
+      - openhands_conversation_image | length > 0
+      - openhands_conversation_image is not search('\s')
       - >-
           openhands_conversation_image_digest == '' or
           openhands_conversation_image_digest is match('^sha256:[0-9a-f]{64}$')

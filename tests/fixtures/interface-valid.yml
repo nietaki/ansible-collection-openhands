@@ -26,6 +26,7 @@
     openhands_service_group: "{{ interface_primary_group.stdout }}"
     openhands_data_dir: /tmp/openhands-interface/data
     openhands_workspace_dir: /tmp/openhands-interface/workspaces
+    openhands_conversation_image: ghcr.io/openhands/agent-server:rel-1.62.0-python
   tasks:
     - name: Include the role with Docker preflight enabled  # noqa role-name[path]
       ansible.builtin.include_role:

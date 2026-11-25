@@ -118,7 +118,7 @@ argument_specs:
       openhands_conversation_image:
         type: str
         default: ghcr.io/openhands/agent-server:rel-1.62.0-golang
-        description: Exact official OpenHands Agent Server golang image tag.
+        description: Docker image reference for conversation containers.
       openhands_conversation_image_digest:
         type: str
         default: ""

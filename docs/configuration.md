@@ -284,9 +284,9 @@ openhands_conversation_image: >-
 openhands_conversation_image_digest: ""
 ```
 
-The role accepts exact official OpenHands Agent Server `-golang` tags and
-rejects an image value that already contains `@...`. When a digest is supplied,
-the effective reference is:
+The role accepts any non-empty, whitespace-free Docker image reference,
+including `-python` tags and digest-qualified references. When a digest is
+supplied separately, the effective reference is:
 
 ```text
 <image-tag>@sha256:<digest>
@@ -365,7 +365,7 @@ cross-variable and format checks before managed-host mutation, including:
 - Unix user and group names;
 - listener and public-mode authentication relationships;
 - absolute persistence paths;
-- official conversation-image and digest syntax;
+- non-empty, whitespace-free conversation image references and digest syntax;
 - positive resource and health-check values;
 - valid and non-reserved extra environment names.
 

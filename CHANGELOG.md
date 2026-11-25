@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Accept custom and Python-tagged conversation image references instead of
+  restricting deployments to official `-golang` tags.
+
 - Upgrade GitHub Actions checkout and artifact upload actions to Node.js
   24-compatible releases.
 

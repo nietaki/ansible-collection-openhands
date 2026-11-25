@@ -89,7 +89,7 @@ checks that:
 
 - valid role configuration is accepted;
 - invalid public-mode and health-check configuration is rejected;
-- floating conversation-image tags are rejected by the role interface;
+- non-empty, whitespace-free conversation image references are accepted, including `-python` tags; malformed whitespace-containing values are rejected;
 - a missing Docker executable fails before managed-host mutation;
 - an executable with an inaccessible Docker daemon fails before mutation;
 - the rendered systemd unit preserves directive boundaries.
@@ -118,10 +118,9 @@ exercise service shutdown or running-container quiescence.
 
 ### Conversation-image policy tests
 
-`tests/contract/test_official_image.py` verifies the repository's policy for
-official OpenHands Agent Server images. It accepts pinned official `-golang`
-references, including the validated `rel-1.62.0-golang` release-branch image,
-and rejects floating or non-official references.
+`tests/contract/test_image_reference.py` verifies that image references may use
+custom registries, tags, or digests, and rejects only empty or whitespace-
+containing values.
 
 Run all contract tests with:
 

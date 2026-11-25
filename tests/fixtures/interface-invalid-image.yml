@@ -1,5 +1,5 @@
 ---
-- name: Exercise an invalid floating conversation image
+- name: Exercise an invalid conversation image containing whitespace
   hosts: all
   gather_facts: true
   pre_tasks:
@@ -16,8 +16,8 @@
     openhands_service_group: "{{ interface_primary_group.stdout }}"
     openhands_data_dir: /tmp/openhands-interface/data
     openhands_workspace_dir: /tmp/openhands-interface/workspaces
-    openhands_conversation_image: ghcr.io/openhands/agent-server:latest-golang
+    openhands_conversation_image: 'ghcr.io/openhands/agent-server:python image'
   tasks:
-    - name: Include the role with a floating conversation image  # noqa role-name[path]
+    - name: Include the role with a malformed conversation image  # noqa role-name[path]
       ansible.builtin.include_role:
         name: nietaki.openhands.agent_canvas
