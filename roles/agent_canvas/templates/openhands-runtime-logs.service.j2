@@ -1,0 +1,21 @@
+[Unit]
+Description=Capture OpenHands conversation container logs
+After=docker.service
+Before=openhands.service
+
+[Service]
+Type=simple
+User={{ openhands_service_user }}
+Group={{ openhands_service_group }}
+SupplementaryGroups={{ openhands_docker_group }}
+Environment=DOCKER_BIN={{ openhands_docker_executable }}
+ExecStart={{ openhands_data_dir }}/capture-runtime-logs.sh
+Restart=on-failure
+RestartSec=5s
+UMask=0077
+NoNewPrivileges=true
+ProtectHome=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

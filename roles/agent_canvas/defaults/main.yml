@@ -19,6 +19,8 @@ openhands_agent_canvas_checksum: ""
 openhands_install_prerequisites: true
 # Prepares the conversation image and renders, enables, starts, and health-checks the systemd service.
 openhands_manage_service: true
+# Installs and manages an optional systemd service that streams conversation container logs to journald.
+openhands_capture_runtime_logs: false
 # Creates a root-only persistence checkpoint before upgrading an existing installation.
 openhands_backup_enabled: true
 openhands_backup_dir: /var/backups/openhands

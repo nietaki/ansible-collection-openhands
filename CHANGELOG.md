@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add optional best-effort journald capture for OpenHands conversation
+  container logs.
+
 ## [0.3.3] - 2026-11-25
 
 ### Fixed

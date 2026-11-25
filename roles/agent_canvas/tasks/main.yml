@@ -32,6 +32,7 @@
       - openhands_bind_host in ['127.0.0.1', 'localhost', '::1'] or openhands_public
       - openhands_health_retries | int > 0
       - openhands_health_delay | int > 0
+      - openhands_capture_runtime_logs is boolean
       - openhands_data_dir is match('^/')
       - openhands_data_dir != '/'
       - openhands_workspace_dir is match('^/')
@@ -182,6 +183,9 @@
 - name: Install managed application prerequisites
   ansible.builtin.include_tasks: prerequisites.yml
   when: openhands_install_prerequisites
+
+- name: Manage optional OpenHands runtime log capture
+  ansible.builtin.include_tasks: runtime-logs.yml
 
 - name: Ensure the OpenHands conversation image is available
   ansible.builtin.include_tasks: conversation-image.yml
