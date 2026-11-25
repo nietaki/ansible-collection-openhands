@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add optional best-effort journald capture for OpenHands conversation
   container logs.
 
+### Changed
+
+- Clarify that platform-specific paths skipped by local validation need testing
+  under CI-equivalent conditions.
+
+### Fixed
+
+- Skip runtime log systemd management unless log capture is enabled.
+
 ## [0.3.3] - 2026-11-25
 
 ### Fixed
