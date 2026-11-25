@@ -18,8 +18,9 @@ make check
 ```
 
 `make check` builds and installs the collection artifact locally, then runs
-linting, contract tests, and the default Molecule scenario. This verifies the
-role through its collection FQCN and packaged files. It is designed to be safe
+linting, the example playbook syntax check, contract tests, and the default
+Molecule scenario. This verifies the role through its collection FQCN and
+packaged files. It is designed to be safe
 on developer workstations, including macOS. It does not install OpenHands,
 create a service account, manage systemd, or require Docker.
 
@@ -45,12 +46,14 @@ its cleanup playbook.
 | Collection packaging | `make collection-install` | Build and install the local collection artifact | Any development host |
 | YAML lint | `make lint-yaml` | YAML syntax and formatting | Any development host |
 | Ansible lint | `make lint` | Ansible correctness and production-profile conventions | Any development host |
+| Syntax check | `make syntax` | Example playbook parsing through the installed collection | Any development host |
 | Contract tests | `make test` | Public interface, validation, templates, and failure paths | Any development host |
 | Default Molecule scenario | `make molecule` | Safe role loading, convergence, and idempotence | Any development host |
-| Ansible compatibility | CI only | Syntax and safe convergence across supported Ansible versions | Ubuntu amd64 |
+| Ansible compatibility | `make check-compatibility` | Syntax and safe convergence with `ANSIBLE_REQUIREMENT` | Ubuntu amd64 |
 | Version-only persistence | `make molecule-persistence-version-only` | Real installation without download checksums | Disposable Ubuntu host |
 | Verified persistence | `make molecule-persistence-verified` | Real installation with download checksums | Disposable Ubuntu host |
-| Native architecture matrix | CI only | Both checksum modes on native amd64 and arm64 | GitHub-hosted Ubuntu runners |
+| Native version-only validation | `make check-native-version-only` | Default and persistence scenarios on a native runner | Disposable Ubuntu host |
+| Native verified validation | `make check-native-verified` | Verified persistence scenario on a native runner | Disposable Ubuntu host |
 
 ## Linting and static checks
 
@@ -195,10 +198,11 @@ The `ansible-compatibility` job in `.github/workflows/ci.yml` checks:
 - the latest Ansible Core available from PyPI;
 - `ansible-core 2.22.0`, currently used by the primary `kotik` consumer.
 
-Each matrix entry uses an isolated `uv` environment. This prevents the locked
-local Ansible version from accidentally masking incompatibilities. The job runs
-the syntax fixture and default Molecule scenario, not the privileged lifecycle
-scenario.
+Each matrix entry sets `ANSIBLE_REQUIREMENT` and invokes
+`make check-compatibility`, which uses an isolated `uv` environment. This
+prevents the locked local Ansible version from accidentally masking
+incompatibilities. The target runs the syntax fixture and default Molecule
+scenario, not the privileged lifecycle scenario.
 
 ## Native architecture CI
 
@@ -211,11 +215,13 @@ The `native-integration` job runs four entries on GitHub-hosted native runners:
 | `ubuntu-26.04-arm` | arm64 | version-only |
 | `ubuntu-26.04-arm` | arm64 | verified |
 
-Every entry runs the complete persistence scenario. The lightweight default
-scenario runs only in the version-only entries, preserving one native run per
-architecture without duplicating it for checksum mode. Native runners are
-important because the role installs different Node.js and uv artifacts and
-Docker resolves different conversation-image manifests for each architecture.
+Every entry invokes either `make check-native-version-only` or
+`make check-native-verified` and runs the complete persistence scenario. The
+lightweight default scenario runs only in the version-only entries, preserving
+one native run per architecture without duplicating it for checksum mode.
+Native runners are important because the role installs different Node.js and
+uv artifacts and Docker resolves different conversation-image manifests for
+each architecture.
 
 The workflow is defined in `.github/workflows/ci.yml`. Third-party actions are
 pinned by commit SHA and workflow permissions are read-only.

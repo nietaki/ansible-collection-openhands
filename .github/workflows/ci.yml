@@ -33,23 +33,8 @@ jobs:
       - name: Install locked development dependencies
         run: uv sync --locked
 
-      - name: Build and install the collection under test
-        run: make collection-install
-
-      - name: Run YAML lint
-        run: uv run yamllint .
-
-      - name: Run Ansible lint
-        run: uv run ansible-lint
-
-      - name: Check example playbook syntax
-        run: uv run ansible-playbook --syntax-check -i localhost, -c local tests/fixtures/syntax.yml
-
-      - name: Run contract tests
-        run: uv run python -m unittest discover -s tests -p 'test_*.py'
-
-      - name: Run the delegated Molecule scenario
-        run: uv run molecule test -s default
+      - name: Run the workstation-safe validation suite
+        run: make check
 
   ansible-compatibility:
     name: Ansible ${{ matrix.label }} (${{ matrix.version }})
@@ -80,25 +65,10 @@ jobs:
       - name: Install locked development dependencies
         run: uv sync --locked
 
-      - name: Build and install the collection under test
-        run: make collection-install
-
-      - name: Check Ansible version compatibility
-        run: >-
-          uv run --isolated --with "${{ matrix.requirement }}"
-          ansible-playbook --version
-
-      - name: Check example playbook syntax
-        run: >-
-          uv run --isolated --with "${{ matrix.requirement }}"
-          ansible-playbook --syntax-check -i localhost, -c local tests/fixtures/syntax.yml
-
-      - name: Run the delegated Molecule scenario
-        run: >-
-          uv run --isolated --with "${{ matrix.requirement }}"
-          --with "molecule==25.11.1"
-          --with "molecule-plugins==26.11.0"
-          molecule test -s default
+      - name: Run Ansible compatibility validation
+        env:
+          ANSIBLE_REQUIREMENT: ${{ matrix.requirement }}
+        run: make check-compatibility
 
   native-integration:
     name: Native ${{ matrix.architecture }} ${{ matrix.checksum_mode }} integration
@@ -132,17 +102,8 @@ jobs:
       - name: Install locked development dependencies
         run: uv sync --locked
 
-      - name: Build and install the collection under test
-        run: make collection-install
-
-      - name: Run the delegated collection role scenario
-        if: matrix.checksum_mode == 'version-only'
-        run: uv run molecule test -s default
-
-      - name: Run the persistence integration scenario
-        env:
-          OPENHANDS_CHECKSUM_MODE: ${{ matrix.checksum_mode }}
-        run: uv run molecule test -s persistence
+      - name: Run native integration validation
+        run: make check-native-${{ matrix.checksum_mode }}
 
       - name: Display the OpenHands journal after failure
         if: failure()
@@ -164,9 +125,6 @@ jobs:
           path: /tmp/openhands-ci-diagnostics/
           if-no-files-found: warn
           retention-days: 7
-
-      - name: Run the official image contract smoke test
-        run: uv run python -m unittest tests.contract.test_official_image
 
   release-eligibility:
     name: Classify release tag

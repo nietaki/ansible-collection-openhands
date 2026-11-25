@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Route CI test and integration validation through the same Make targets used
+  locally, preventing workflow commands from retaining stale test references.
+
 ## [0.3.2] - 2026-11-25
 
 ### Changed

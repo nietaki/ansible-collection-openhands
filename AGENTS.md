@@ -18,6 +18,18 @@ workflow change.
 - Do not edit an existing released section except to correct inaccurate or
   missing information.
 
+## CI validation entrypoints
+
+Keep test and static-analysis commands in the `Makefile` as the single source of
+truth. GitHub Actions workflows must call stable Make targets instead of
+invoking tools such as `unittest`, `molecule`, `ansible-lint`, `yamllint`, or
+`ansible-playbook --syntax-check` directly.
+
+When adding or changing validation, update or add the relevant Make target first,
+include workstation-safe validation in `make check`, and have CI invoke that
+target. Do not maintain a separate test-file or test-command inventory in
+workflow YAML.
+
 ## CI status polling
 
 When a GitHub Actions run is still in progress, wait at least 60 seconds between
