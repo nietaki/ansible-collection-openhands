@@ -28,7 +28,12 @@ invoking tools such as `unittest`, `molecule`, `ansible-lint`, `yamllint`, or
 When adding or changing validation, update or add the relevant Make target first,
 include workstation-safe validation in `make check`, and have CI invoke that
 target. Do not maintain a separate test-file or test-command inventory in
-workflow YAML.
+workflow YAML. For changes involving platform-, privilege-, daemon-, or
+service-manager-dependent behavior, check which paths local validation skips
+because of the workstation environment, and validate those paths under
+conditions that match CI. A passing `make check` on a different platform is not
+evidence that skipped paths work. After pushing, inspect required CI runs and
+diagnose failures before considering the work complete.
 
 ## CI status polling
 

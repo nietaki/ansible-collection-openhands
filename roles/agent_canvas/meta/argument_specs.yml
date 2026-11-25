@@ -46,6 +46,10 @@ argument_specs:
         type: bool
         default: true
         description: Render, enable, start, and health-check the systemd service.
+      openhands_capture_runtime_logs:
+        type: bool
+        default: false
+        description: Enable a service that streams matching conversation container logs to journald.
       openhands_service_user:
         type: str
         default: openhands

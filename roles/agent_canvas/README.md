@@ -140,10 +140,20 @@ Agent Canvas version, and waits for the local HTTP endpoint to become healthy.
 Startup polling is controlled by `openhands_health_retries` and
 `openhands_health_delay`.
 
+Set `openhands_capture_runtime_logs: true` to independently enable the
+`openhands-runtime-logs.service`. The role installs its script in
+`openhands_data_dir`; the service follows newly started conversation containers
+with the OpenHands runtime-owner label and writes timestamped, container-ID-
+prefixed lines to journald. View them with
+`journalctl -u openhands-runtime-logs.service -f`. Capture is best-effort: logs
+may be missed if a short-lived container disappears before Docker attaches the
+log follower. The journal may contain sensitive conversation output.
+
 `openhands_extra_environment` can add non-reserved Agent Canvas settings to the
-environment file. Disabling service management skips conversation-image
-preparation and all systemd management, while the persistent directories are
-still created.
+environment file. Disabling `openhands_manage_service` skips Agent Canvas
+service management and conversation-image preparation. Runtime log capture is
+managed independently by `openhands_capture_runtime_logs`; persistent
+directories are still created.
 
 ### Configure access to Agent Canvas (optional)
 

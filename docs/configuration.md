@@ -335,6 +335,25 @@ Choose limits based on the expected tools and workloads. Resource limits reduce
 accidental host exhaustion but do not turn Docker daemon access into a safe
 multi-tenant boundary.
 
+## Capturing conversation container logs (optional)
+
+Set `openhands_capture_runtime_logs: true` to enable an independent systemd
+service that follows newly started containers carrying the
+`ai.openhands.runtime-owner` label. It prefixes each timestamped output line
+with the first 12 characters of the container ID and writes the multiplexed
+output to journald:
+
+```console
+sudo journalctl -u openhands-runtime-logs.service -f
+```
+
+The role installs the capture script in `openhands_data_dir` even when capture
+is disabled. Capture is best-effort; it does not attach to containers already
+running when the monitor starts, and a short-lived container may disappear
+before Docker attaches the log follower. Captured output may contain sensitive
+conversation details; journal access and retention should be managed
+accordingly.
+
 ## Extra environment variables
 
 `openhands_extra_environment` is an escape hatch for Agent Canvas settings that
