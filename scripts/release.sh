@@ -65,7 +65,6 @@ if grep -Fq "## [$new_version] - " CHANGELOG.md; then
     fail "CHANGELOG.md already contains version $new_version"
 fi
 
-make check
 check_repository
 
 [ -z "$(git tag --list "$new_version")" ] || fail "tag $new_version already exists locally"

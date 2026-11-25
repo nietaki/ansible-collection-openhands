@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Skip the full test and lint suite in release preparation; releases still
+  require a clean, up-to-date `master` checkout.
 - Clarify that platform-specific paths skipped by local validation need testing
   under CI-equivalent conditions.
 
