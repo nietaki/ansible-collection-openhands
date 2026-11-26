@@ -6,6 +6,17 @@ argument_specs:
       - The role validates its complete public interface before any managed-host changes.
       - Docker is expected to be installed and configured outside this role.
     options:
+      state:
+        type: str
+        default: present
+        choices:
+          - present
+          - absent
+        description: Whether to install/configure or remove the role-managed OpenHands deployment.
+      openhands_remove_containers:
+        type: bool
+        default: false
+        description: Remove all OpenHands-labeled conversation containers when state is absent.
       openhands_node_version:
         type: str
         default: "24.11.1"

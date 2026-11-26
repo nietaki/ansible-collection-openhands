@@ -10,7 +10,7 @@
 - name: Install the OpenHands runtime log capture systemd unit
   ansible.builtin.template:
     src: openhands-runtime-logs.service.j2
-    dest: /etc/systemd/system/openhands-runtime-logs.service
+    dest: "{{ openhands_runtime_logs_systemd_unit }}"
     owner: root
     group: root
     mode: "0644"

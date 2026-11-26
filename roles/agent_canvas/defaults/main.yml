@@ -1,4 +1,9 @@
 ---
+# Desired role state. Absent removes role-managed software and service files while preserving persistence.
+state: present
+# Also remove stopped OpenHands conversation containers when state is absent.
+openhands_remove_containers: false
+
 # Versioned application dependencies. These are deliberately explicit so an
 # upgrade is a reviewed role configuration change rather than an implicit
 # latest-version upgrade.

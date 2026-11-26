@@ -17,6 +17,17 @@ The role installs and runs Agent Canvas directly on the managed host as a
 native systemd service. Docker is used only for the per-conversation Agent
 Server containers; Agent Canvas itself does not run in the conversation image.
 
+The default `state: present` installs or configures the deployment. Set
+`state: absent` to stop and disable the managed services, stop running
+conversation containers carrying the `ai.openhands.runtime-owner` label, and
+remove the role-managed software and service files. This preserves the data,
+workspace, and backup directories, the service user and group, and Docker
+images. Stopped containers are retained unless `openhands_remove_containers: true`
+is set; that option removes all matching containers, including those already
+stopped, and deletes their container writable layers. If Docker cleanup fails,
+the role continues uninstalling its software and service files, then reports a
+failure so container cleanup can be retried.
+
 ### Validate configuration
 
 Before changing the managed host, the role validates its complete public

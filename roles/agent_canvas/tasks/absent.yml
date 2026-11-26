@@ -1,0 +1,117 @@
+---
+- name: Initialize OpenHands container cleanup status
+  ansible.builtin.set_fact:
+    openhands_absent_docker_cleanup_failed: false
+
+- name: Check for the OpenHands systemd unit
+  ansible.builtin.stat:
+    path: "{{ openhands_systemd_unit }}"
+  register: openhands_absent_service_unit
+
+- name: Stop and disable the OpenHands service
+  ansible.builtin.systemd_service:
+    name: openhands.service
+    enabled: false
+    state: stopped
+  when:
+    - openhands_absent_service_unit.stat.exists
+    - ansible_facts.get('service_mgr', '') == 'systemd'
+
+- name: Check for the OpenHands runtime log systemd unit
+  ansible.builtin.stat:
+    path: "{{ openhands_runtime_logs_systemd_unit }}"
+  register: openhands_absent_runtime_logs_unit
+
+- name: Stop and disable the OpenHands runtime log service
+  ansible.builtin.systemd_service:
+    name: openhands-runtime-logs.service
+    enabled: false
+    state: stopped
+  when:
+    - openhands_absent_runtime_logs_unit.stat.exists
+    - ansible_facts.get('service_mgr', '') == 'systemd'
+
+- name: Stop matching OpenHands conversation containers
+  block:
+    - name: List running OpenHands conversation containers
+      ansible.builtin.command:
+        argv:
+          - "{{ openhands_docker_executable }}"
+          - ps
+          - --quiet
+          - --filter
+          - label=ai.openhands.runtime-owner
+      register: openhands_absent_running_containers
+      changed_when: false
+
+    - name: Stop running OpenHands conversation containers
+      ansible.builtin.command:
+        argv: "{{ [openhands_docker_executable, 'stop'] + openhands_absent_running_containers.stdout_lines }}"
+      when: openhands_absent_running_containers.stdout_lines | length > 0
+      changed_when: true
+
+    - name: List all OpenHands conversation containers for optional removal
+      ansible.builtin.command:
+        argv:
+          - "{{ openhands_docker_executable }}"
+          - ps
+          - --all
+          - --quiet
+          - --filter
+          - label=ai.openhands.runtime-owner
+      register: openhands_absent_all_containers
+      changed_when: false
+      when: openhands_remove_containers
+
+    - name: Remove all matching OpenHands conversation containers
+      ansible.builtin.command:
+        argv: "{{ [openhands_docker_executable, 'rm'] + openhands_absent_all_containers.stdout_lines }}"
+      when:
+        - openhands_remove_containers
+        - openhands_absent_all_containers.stdout_lines | length > 0
+      changed_when: true
+  rescue:
+    - name: Record OpenHands container cleanup failure
+      ansible.builtin.set_fact:
+        openhands_absent_docker_cleanup_failed: true
+
+- name: Remove the Agent Canvas environment file
+  ansible.builtin.file:
+    path: "{{ openhands_environment_file }}"
+    state: absent
+
+- name: Remove the OpenHands systemd unit
+  ansible.builtin.file:
+    path: "{{ openhands_systemd_unit }}"
+    state: absent
+
+- name: Remove the OpenHands runtime log systemd unit
+  ansible.builtin.file:
+    path: "{{ openhands_runtime_logs_systemd_unit }}"
+    state: absent
+
+- name: Remove the role-managed runtime log capture script
+  ansible.builtin.file:
+    path: "{{ openhands_data_dir }}/capture-runtime-logs.sh"
+    state: absent
+
+- name: Reload systemd after removing OpenHands units
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  when:
+    - ansible_facts.get('service_mgr', '') == 'systemd'
+    - openhands_absent_service_unit.stat.exists or openhands_absent_runtime_logs_unit.stat.exists
+
+- name: Remove the role-managed OpenHands application prefix
+  ansible.builtin.file:
+    path: "{{ openhands_install_prefix }}"
+    state: absent
+
+- name: Report container cleanup failure after completing uninstall
+  ansible.builtin.assert:
+    that:
+      - not (openhands_absent_docker_cleanup_failed | default(false))
+    fail_msg: >-
+      OpenHands service files and software were removed, but Docker conversation
+      container cleanup failed. Check Docker availability and remove any remaining
+      containers labeled ai.openhands.runtime-owner manually or retry this role.

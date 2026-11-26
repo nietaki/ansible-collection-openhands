@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `state: absent` support to stop OpenHands conversation containers and
+  remove role-managed software and service files while preserving persistent
+  data, workspaces, backups, service identities, and Docker images. Removal of
+  stopped containers is opt-in with `openhands_remove_containers`.
+
 ## [0.3.4] - 2026-11-25
 
 ### Added
