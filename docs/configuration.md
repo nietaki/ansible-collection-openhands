@@ -1,9 +1,9 @@
 # Configuration
 
-The public role interface consists of the `openhands_` variables declared in
-`roles/agent_canvas/defaults/main.yml` and described by
-`roles/agent_canvas/meta/argument_specs.yml`. The role
-validates the complete interface before making managed-host changes.
+The public role interface consists of `state` and the `openhands_` variables
+declared in `roles/agent_canvas/defaults/main.yml` and described by
+`roles/agent_canvas/meta/argument_specs.yml`. The role validates the deployment
+configuration before making changes when `state: present` is selected.
 
 This document explains relationships and operational consequences that do not
 fit into one-line variable comments. `roles/agent_canvas/defaults/main.yml`
@@ -137,6 +137,29 @@ identity, installs the pinned application stack, prepares the official
 conversation image, and manages the systemd service.
 
 ## Installation and service switches
+
+### `state`
+
+`state` defaults to `present`. Set it to `absent` to stop and disable the
+managed Agent Canvas and runtime-log services, stop running conversation
+containers carrying the `ai.openhands.runtime-owner` label, and remove the
+role-managed `/opt/openhands` software prefix, environment file, systemd units,
+and runtime-log capture script.
+
+Absent state preserves the data and workspace directories, pre-upgrade backup
+directory, service user and group, and Docker images. Stopped conversation
+containers are preserved by default. Set `openhands_remove_containers: true`
+to remove every matching container, including already-stopped containers; this
+also deletes their writable layers. Docker cleanup failures do not prevent
+software and service-file removal, but the role reports failure after teardown
+so the remaining container cleanup can be investigated or retried.
+
+### `openhands_remove_containers`
+
+This boolean defaults to `false` and applies only when `state: absent`. When
+true, after stopping running matching containers, the role removes all
+containers with the OpenHands runtime-owner label. It does not remove Docker
+images or run a global prune.
 
 ### `openhands_install_prerequisites`
 

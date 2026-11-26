@@ -1,0 +1,19 @@
+---
+- name: Exercise absent-state cleanup
+  hosts: all
+  gather_facts: false
+  vars:
+    state: absent
+    openhands_data_dir: "{{ absent_test_root }}/data"
+    openhands_workspace_dir: "{{ absent_test_root }}/workspaces"
+    openhands_backup_dir: "{{ absent_test_root }}/backups"
+    openhands_install_prefix: "{{ absent_test_root }}/software"
+    openhands_environment_file: "{{ absent_test_root }}/etc/agent-canvas.env"
+    openhands_systemd_unit: "{{ absent_test_root }}/systemd/openhands.service"
+    openhands_runtime_logs_systemd_unit: "{{ absent_test_root }}/systemd/openhands-runtime-logs.service"
+    openhands_docker_executable: "{{ absent_test_docker }}"
+    openhands_remove_containers: "{{ absent_test_remove_containers | default(false) }}"
+  tasks:
+    - name: Include the role in absent state  # noqa role-name[path]
+      ansible.builtin.include_role:
+        name: nietaki.openhands.agent_canvas

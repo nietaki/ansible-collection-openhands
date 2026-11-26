@@ -51,6 +51,7 @@ openhands_runtime_path: "{{ openhands_runtime_path_prefix }}:{{ openhands_system
 openhands_environment_dir: /etc/openhands
 openhands_environment_file: "{{ openhands_environment_dir }}/agent-canvas.env"
 openhands_systemd_unit: /etc/systemd/system/openhands.service
+openhands_runtime_logs_systemd_unit: /etc/systemd/system/openhands-runtime-logs.service
 openhands_health_host: >-
   {{ '127.0.0.1' if openhands_bind_host in ['0.0.0.0', '::'] else openhands_bind_host }}
 openhands_health_url_host: >-
